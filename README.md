@@ -194,7 +194,7 @@ If you migrate from `tailwindcss-padding-safe`, note that the same class does no
 
 ## Tailwind core
 
-[Discussion #20200](https://github.com/tailwindlabs/tailwindcss/discussions/20200) proposes built-in `pt-safe` and `pt-safe-4` utilities with the same additive meaning as this package. As of September 2026, the Tailwind team has not responded to it. If they adopt it, you should be able to remove this package while keeping most of your class names.
+[Discussion #20200](https://github.com/tailwindlabs/tailwindcss/discussions/20200) proposes built-in `*-safe` and `*-safe-*` utilities with the same additive meaning as this package. As of September 2026, the Tailwind team has not responded to it. If they adopt it, you should be able to remove this package while keeping most of your class names.
 
 ## Development
 
@@ -203,9 +203,7 @@ npm install
 npm test
 ```
 
-The tests compile the utilities with Tailwind and check the generated CSS: values, the inset read on each side in LTR and RTL, a theme without `--spacing`, and that every utility writes the same property, reads the same theme token and sorts in the same order as its Tailwind counterpart. They also check that every tailwind-merge decision matches the one for the core counterparts, and type-check the helper. CI runs them against Tailwind 4.0.0 and the latest release, then installs the packed tarball the way a user would.
-
-To release, bump `version` in `package.json`, then push a matching `vX.Y.Z` tag. The publish workflow uses npm trusted publishing, so no npm token is stored in the repository.
+The tests compile the utilities with Tailwind and check the generated CSS: values, the inset read on each side in LTR and RTL, a theme without `--spacing`, and that every utility writes the same property, reads the same theme token and sorts in the same order as its Tailwind counterpart. They also check that every tailwind-merge decision matches the one for the core counterparts, and type-check the helper.
 
 ## License
 
