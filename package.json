@@ -1,0 +1,76 @@
+{
+  "name": "tailwind-safe-insets",
+  "version": "0.1.0",
+  "description": "Safe-area-aware padding, margin, positioning and scroll utilities for Tailwind CSS v4, with the full Tailwind value syntax and tailwind-merge support.",
+  "license": "MIT",
+  "author": "Antoine Boquet",
+  "keywords": [
+    "tailwindcss",
+    "tailwind",
+    "tailwindcss-v4",
+    "safe-area",
+    "safe-area-inset",
+    "viewport-fit",
+    "notch",
+    "pwa",
+    "mobile",
+    "inset",
+    "position",
+    "margin",
+    "padding",
+    "css",
+    "utilities",
+    "tailwind-merge"
+  ],
+  "style": "./index.css",
+  "exports": {
+    ".": {
+      "style": "./index.css",
+      "default": "./index.css"
+    },
+    "./index.css": "./index.css",
+    "./merge": {
+      "types": "./merge.d.mts",
+      "default": "./merge.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "merge": [
+        "./merge.d.mts"
+      ]
+    }
+  },
+  "files": [
+    "index.css",
+    "merge.mjs",
+    "merge.d.mts"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs && tsc -p test/types"
+  },
+  "peerDependencies": {
+    "tailwind-merge": "^3.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "tailwind-merge": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@tailwindcss/node": "^4.3.3",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
+  },
+  "homepage": "https://github.com/antoineboquet/tailwind-safe-insets#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antoineboquet/tailwind-safe-insets.git"
+  },
+  "bugs": {
+    "url": "https://github.com/antoineboquet/tailwind-safe-insets/issues"
+  }
+}

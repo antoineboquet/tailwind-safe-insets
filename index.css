@@ -1,0 +1,1337 @@
+/*
+ * tailwind-safe-insets — safe-area-aware spacing and positioning for Tailwind CSS v4.
+ *
+ * Three forms per utility (examples use padding-top):
+ *
+ *   pt-safe        padding-top: <inset>
+ *   pt-safe-4      padding-top: <inset> + 4 spacing units    (additive)
+ *   pt-safe-or-4   padding-top: max(<inset>, 4 spacing units) (at least)
+ *
+ * Families: padding (p*), margin (m*, and negative -m*), position (inset,
+ * inset-x, inset-y, inset-s, inset-e, top, right, bottom, left), scroll padding (scroll-p*) and
+ * scroll margin (scroll-m*).
+ *
+ * Values accepted after "-safe-" and "-safe-or-":
+ *   - bare numbers on the spacing scale:  pt-safe-4, pt-safe-1.5
+ *   - theme tokens, like core utilities:  pt-safe-sm (--padding-sm, else --spacing-sm)
+ *   - one arbitrary value:                pt-safe-[20px], pt-safe-[var(--gap)]
+ *
+ * <inset> is var(--safe-inset-<side>, env(safe-area-inset-<side>, 0px)):
+ *   - safe-none, safe-x-none, safe-b-none, ... set the variables to 0px for an
+ *     element and its descendants (a footer reused inside a drawer, say);
+ *   - you can also set --safe-inset-<side> yourself, e.g. from a native bridge.
+ *
+ * Safe-area insets are physical (the left notch stays on the left in RTL).
+ * Each utility writes the same property as its Tailwind counterpart, so they
+ * sort and override the same way: x / s / e utilities write *-inline
+ * properties and swap the left and right insets under :dir(rtl); y
+ * utilities write *-block properties (top and bottom in horizontal writing
+ * modes).
+ *
+ * Declaration order matters: the last declaration that resolves wins, so theme
+ * tokens (--padding-4, --spacing-4) override the numeric scale, and a family
+ * token (--padding-*) overrides a --spacing-* one, as in core utilities.
+ */
+
+/* Padding --------------------------------------------------------------- */
+
+@utility p-safe {
+  padding: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility p-safe-* {
+  padding: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  padding: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--padding-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--padding-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--padding-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--padding-*));
+  padding: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility p-safe-or-* {
+  padding: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  padding: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--padding-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--padding-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--padding-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--padding-*));
+  padding: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+@utility px-safe {
+  padding-inline: var(--safe-inset-left, env(safe-area-inset-left, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    padding-inline: var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility px-safe-* {
+  padding-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  padding-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--padding-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--padding-*));
+  padding-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    padding-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    padding-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    padding-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--padding-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--padding-*));
+    padding-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility px-safe-or-* {
+  padding-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  padding-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--padding-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--padding-*));
+  padding-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    padding-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    padding-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    padding-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--padding-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--padding-*));
+    padding-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility py-safe {
+  padding-block: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility py-safe-* {
+  padding-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  padding-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--padding-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--padding-*));
+  padding-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility py-safe-or-* {
+  padding-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  padding-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--padding-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--padding-*));
+  padding-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility ps-safe {
+  padding-inline-start: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  &:where(:dir(rtl)) {
+    padding-inline-start: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  }
+}
+
+@utility ps-safe-* {
+  padding-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  padding-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--padding-*));
+  padding-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    padding-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    padding-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+    padding-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--padding-*));
+    padding-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  }
+}
+
+@utility ps-safe-or-* {
+  padding-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  padding-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--padding-*));
+  padding-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    padding-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    padding-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+    padding-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--padding-*));
+    padding-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  }
+}
+
+@utility pe-safe {
+  padding-inline-end: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    padding-inline-end: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility pe-safe-* {
+  padding-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  padding-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--padding-*));
+  padding-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    padding-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    padding-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    padding-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--padding-*));
+    padding-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility pe-safe-or-* {
+  padding-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  padding-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--padding-*));
+  padding-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    padding-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    padding-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    padding-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--padding-*));
+    padding-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility pt-safe {
+  padding-top: var(--safe-inset-top, env(safe-area-inset-top, 0px));
+}
+
+@utility pt-safe-* {
+  padding-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*));
+  padding-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--padding-*));
+  padding-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*]));
+}
+
+@utility pt-safe-or-* {
+  padding-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*));
+  padding-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--padding-*));
+  padding-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*]));
+}
+
+@utility pr-safe {
+  padding-right: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+}
+
+@utility pr-safe-* {
+  padding-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  padding-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--padding-*));
+  padding-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+}
+
+@utility pr-safe-or-* {
+  padding-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  padding-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--padding-*));
+  padding-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+}
+
+@utility pb-safe {
+  padding-bottom: var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility pb-safe-* {
+  padding-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  padding-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--padding-*));
+  padding-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility pb-safe-or-* {
+  padding-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  padding-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--padding-*));
+  padding-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility pl-safe {
+  padding-left: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility pl-safe-* {
+  padding-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  padding-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--padding-*));
+  padding-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility pl-safe-or-* {
+  padding-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  padding-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  padding-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--padding-*));
+  padding-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+/* Margin ---------------------------------------------------------------- */
+
+@utility m-safe {
+  margin: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility m-safe-* {
+  margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--margin-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--margin-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*));
+  margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility m-safe-or-* {
+  margin: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  margin: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--margin-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--margin-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*));
+  margin: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+@utility mx-safe {
+  margin-inline: var(--safe-inset-left, env(safe-area-inset-left, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    margin-inline: var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility mx-safe-* {
+  margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*));
+  margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*));
+    margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility mx-safe-or-* {
+  margin-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  margin-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*));
+  margin-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    margin-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    margin-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    margin-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*));
+    margin-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility my-safe {
+  margin-block: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility my-safe-* {
+  margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--margin-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--margin-*));
+  margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility my-safe-or-* {
+  margin-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  margin-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--margin-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--margin-*));
+  margin-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility ms-safe {
+  margin-inline-start: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  &:where(:dir(rtl)) {
+    margin-inline-start: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  }
+}
+
+@utility ms-safe-* {
+  margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*));
+  margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+    margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*));
+    margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  }
+}
+
+@utility ms-safe-or-* {
+  margin-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  margin-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*));
+  margin-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    margin-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    margin-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+    margin-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*));
+    margin-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  }
+}
+
+@utility me-safe {
+  margin-inline-end: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    margin-inline-end: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility me-safe-* {
+  margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*));
+  margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*));
+    margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility me-safe-or-* {
+  margin-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  margin-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*));
+  margin-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    margin-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    margin-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    margin-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*));
+    margin-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility mt-safe {
+  margin-top: var(--safe-inset-top, env(safe-area-inset-top, 0px));
+}
+
+@utility mt-safe-* {
+  margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*));
+  margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--margin-*));
+  margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*]));
+}
+
+@utility mt-safe-or-* {
+  margin-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*));
+  margin-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--margin-*));
+  margin-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*]));
+}
+
+@utility mr-safe {
+  margin-right: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+}
+
+@utility mr-safe-* {
+  margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*));
+  margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+}
+
+@utility mr-safe-or-* {
+  margin-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  margin-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*));
+  margin-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+}
+
+@utility mb-safe {
+  margin-bottom: var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility mb-safe-* {
+  margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--margin-*));
+  margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility mb-safe-or-* {
+  margin-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  margin-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--margin-*));
+  margin-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility ml-safe {
+  margin-left: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility ml-safe-* {
+  margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*));
+  margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility ml-safe-or-* {
+  margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*));
+  margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+/* Negative margin (full-bleed children of safe-padded containers) */
+
+@utility -m-safe {
+  margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) * -1) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) * -1) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) * -1) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) * -1);
+}
+
+@utility -m-safe-* {
+  margin: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) * -1) calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) * -1) calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)) * -1) calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) * -1);
+  margin: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--margin-*)) * -1) calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*)) * -1) calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--margin-*)) * -1) calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*)) * -1);
+  margin: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) * -1) calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) * -1) calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])) * -1) calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) * -1);
+}
+
+@utility -m-safe-or-* {
+  margin: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) * -1) calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) * -1) calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)) * -1) calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) * -1);
+  margin: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--margin-*)) * -1) calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*)) * -1) calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--margin-*)) * -1) calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*)) * -1);
+  margin: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) * -1) calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) * -1) calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])) * -1) calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) * -1);
+}
+
+@utility -mx-safe {
+  margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) * -1) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) * -1) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) * -1);
+  }
+}
+
+@utility -mx-safe-* {
+  margin-inline: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-inline: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) * -1) calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) * -1);
+  margin-inline: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*)) * -1) calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*)) * -1);
+  margin-inline: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) * -1) calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+    margin-inline: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) * -1) calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) * -1);
+    margin-inline: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*)) * -1) calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*)) * -1);
+    margin-inline: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) * -1) calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) * -1);
+  }
+}
+
+@utility -mx-safe-or-* {
+  margin-inline: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-inline: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) * -1) calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) * -1);
+  margin-inline: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*)) * -1) calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*)) * -1);
+  margin-inline: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) * -1) calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+    margin-inline: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) * -1) calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) * -1);
+    margin-inline: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*)) * -1) calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*)) * -1);
+    margin-inline: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) * -1) calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) * -1);
+  }
+}
+
+@utility -my-safe {
+  margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) * -1) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) * -1);
+}
+
+@utility -my-safe-* {
+  margin-block: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-block: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) * -1) calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)) * -1);
+  margin-block: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--margin-*)) * -1) calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--margin-*)) * -1);
+  margin-block: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) * -1) calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])) * -1);
+}
+
+@utility -my-safe-or-* {
+  margin-block: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1) calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-block: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) * -1) calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)) * -1);
+  margin-block: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--margin-*)) * -1) calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--margin-*)) * -1);
+  margin-block: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) * -1) calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])) * -1);
+}
+
+@utility -ms-safe {
+  margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) * -1);
+  }
+}
+
+@utility -ms-safe-* {
+  margin-inline-start: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-inline-start: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) * -1);
+  margin-inline-start: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*)) * -1);
+  margin-inline-start: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline-start: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+    margin-inline-start: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) * -1);
+    margin-inline-start: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*)) * -1);
+    margin-inline-start: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) * -1);
+  }
+}
+
+@utility -ms-safe-or-* {
+  margin-inline-start: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-inline-start: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) * -1);
+  margin-inline-start: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*)) * -1);
+  margin-inline-start: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline-start: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+    margin-inline-start: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) * -1);
+    margin-inline-start: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*)) * -1);
+    margin-inline-start: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) * -1);
+  }
+}
+
+@utility -me-safe {
+  margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) * -1);
+  }
+}
+
+@utility -me-safe-* {
+  margin-inline-end: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-inline-end: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) * -1);
+  margin-inline-end: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*)) * -1);
+  margin-inline-end: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline-end: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+    margin-inline-end: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) * -1);
+    margin-inline-end: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*)) * -1);
+    margin-inline-end: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) * -1);
+  }
+}
+
+@utility -me-safe-or-* {
+  margin-inline-end: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-inline-end: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) * -1);
+  margin-inline-end: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*)) * -1);
+  margin-inline-end: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) * -1);
+  &:where(:dir(rtl)) {
+    margin-inline-end: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+    margin-inline-end: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) * -1);
+    margin-inline-end: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*)) * -1);
+    margin-inline-end: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) * -1);
+  }
+}
+
+@utility -mt-safe {
+  margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) * -1);
+}
+
+@utility -mt-safe-* {
+  margin-top: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-top: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) * -1);
+  margin-top: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--margin-*)) * -1);
+  margin-top: calc((var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) * -1);
+}
+
+@utility -mt-safe-or-* {
+  margin-top: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-top: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) * -1);
+  margin-top: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--margin-*)) * -1);
+  margin-top: calc(max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) * -1);
+}
+
+@utility -mr-safe {
+  margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) * -1);
+}
+
+@utility -mr-safe-* {
+  margin-right: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-right: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) * -1);
+  margin-right: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--margin-*)) * -1);
+  margin-right: calc((var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) * -1);
+}
+
+@utility -mr-safe-or-* {
+  margin-right: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-right: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) * -1);
+  margin-right: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--margin-*)) * -1);
+  margin-right: calc(max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) * -1);
+}
+
+@utility -mb-safe {
+  margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) * -1);
+}
+
+@utility -mb-safe-* {
+  margin-bottom: calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-bottom: calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)) * -1);
+  margin-bottom: calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--margin-*)) * -1);
+  margin-bottom: calc((var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])) * -1);
+}
+
+@utility -mb-safe-or-* {
+  margin-bottom: calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-bottom: calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)) * -1);
+  margin-bottom: calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--margin-*)) * -1);
+  margin-bottom: calc(max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])) * -1);
+}
+
+@utility -ml-safe {
+  margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) * -1);
+}
+
+@utility -ml-safe-* {
+  margin-left: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-left: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) * -1);
+  margin-left: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--margin-*)) * -1);
+  margin-left: calc((var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) * -1);
+}
+
+@utility -ml-safe-or-* {
+  margin-left: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) * -1);
+  margin-left: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) * -1);
+  margin-left: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--margin-*)) * -1);
+  margin-left: calc(max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) * -1);
+}
+
+/* Position -------------------------------------------------------------- */
+
+@utility inset-safe {
+  inset: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility inset-safe-* {
+  inset: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  inset: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  inset: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--inset-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--inset-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--inset-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--inset-*));
+  inset: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility inset-safe-or-* {
+  inset: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  inset: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  inset: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--inset-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--inset-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--inset-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--inset-*));
+  inset: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+@utility inset-x-safe {
+  inset-inline: var(--safe-inset-left, env(safe-area-inset-left, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    inset-inline: var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility inset-x-safe-* {
+  inset-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  inset-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  inset-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--inset-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--inset-*));
+  inset-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    inset-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    inset-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    inset-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--inset-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--inset-*));
+    inset-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility inset-x-safe-or-* {
+  inset-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  inset-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  inset-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--inset-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--inset-*));
+  inset-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    inset-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    inset-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    inset-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--inset-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--inset-*));
+    inset-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility inset-y-safe {
+  inset-block: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility inset-y-safe-* {
+  inset-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  inset-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  inset-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--inset-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--inset-*));
+  inset-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility inset-y-safe-or-* {
+  inset-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  inset-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  inset-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--inset-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--inset-*));
+  inset-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility inset-s-safe {
+  inset-inline-start: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  &:where(:dir(rtl)) {
+    inset-inline-start: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  }
+}
+
+@utility inset-s-safe-* {
+  inset-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  inset-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  inset-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--inset-*));
+  inset-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    inset-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    inset-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+    inset-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--inset-*));
+    inset-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  }
+}
+
+@utility inset-s-safe-or-* {
+  inset-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  inset-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  inset-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--inset-*));
+  inset-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    inset-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    inset-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+    inset-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--inset-*));
+    inset-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  }
+}
+
+@utility inset-e-safe {
+  inset-inline-end: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    inset-inline-end: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility inset-e-safe-* {
+  inset-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  inset-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  inset-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--inset-*));
+  inset-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    inset-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    inset-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    inset-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--inset-*));
+    inset-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility inset-e-safe-or-* {
+  inset-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  inset-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  inset-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--inset-*));
+  inset-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    inset-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    inset-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    inset-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--inset-*));
+    inset-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility top-safe {
+  top: var(--safe-inset-top, env(safe-area-inset-top, 0px));
+}
+
+@utility top-safe-* {
+  top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*));
+  top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--inset-*));
+  top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*]));
+}
+
+@utility top-safe-or-* {
+  top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*));
+  top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--inset-*));
+  top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*]));
+}
+
+@utility right-safe {
+  right: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+}
+
+@utility right-safe-* {
+  right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--inset-*));
+  right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+}
+
+@utility right-safe-or-* {
+  right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--inset-*));
+  right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+}
+
+@utility bottom-safe {
+  bottom: var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility bottom-safe-* {
+  bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--inset-*));
+  bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility bottom-safe-or-* {
+  bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--inset-*));
+  bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility left-safe {
+  left: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility left-safe-* {
+  left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--inset-*));
+  left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility left-safe-or-* {
+  left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--inset-*));
+  left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+/* Scroll padding -------------------------------------------------------- */
+
+@utility scroll-p-safe {
+  scroll-padding: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility scroll-p-safe-* {
+  scroll-padding: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  scroll-padding: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--scroll-padding-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-padding-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--scroll-padding-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-padding-*));
+  scroll-padding: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility scroll-p-safe-or-* {
+  scroll-padding: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  scroll-padding: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--scroll-padding-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-padding-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--scroll-padding-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-padding-*));
+  scroll-padding: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+@utility scroll-px-safe {
+  scroll-padding-inline: var(--safe-inset-left, env(safe-area-inset-left, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline: var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility scroll-px-safe-* {
+  scroll-padding-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  scroll-padding-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-padding-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-padding-*));
+  scroll-padding-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-padding-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    scroll-padding-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-padding-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-padding-*));
+    scroll-padding-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility scroll-px-safe-or-* {
+  scroll-padding-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  scroll-padding-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-padding-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-padding-*));
+  scroll-padding-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-padding-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    scroll-padding-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-padding-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-padding-*));
+    scroll-padding-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility scroll-py-safe {
+  scroll-padding-block: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility scroll-py-safe-* {
+  scroll-padding-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  scroll-padding-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--scroll-padding-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--scroll-padding-*));
+  scroll-padding-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility scroll-py-safe-or-* {
+  scroll-padding-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  scroll-padding-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--scroll-padding-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--scroll-padding-*));
+  scroll-padding-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility scroll-ps-safe {
+  scroll-padding-inline-start: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline-start: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  }
+}
+
+@utility scroll-ps-safe-* {
+  scroll-padding-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  scroll-padding-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-padding-*));
+  scroll-padding-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-padding-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+    scroll-padding-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-padding-*));
+    scroll-padding-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  }
+}
+
+@utility scroll-ps-safe-or-* {
+  scroll-padding-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  scroll-padding-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-padding-*));
+  scroll-padding-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-padding-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+    scroll-padding-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-padding-*));
+    scroll-padding-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  }
+}
+
+@utility scroll-pe-safe {
+  scroll-padding-inline-end: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline-end: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility scroll-pe-safe-* {
+  scroll-padding-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  scroll-padding-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-padding-*));
+  scroll-padding-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-padding-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    scroll-padding-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-padding-*));
+    scroll-padding-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility scroll-pe-safe-or-* {
+  scroll-padding-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  scroll-padding-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-padding-*));
+  scroll-padding-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-padding-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-padding-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    scroll-padding-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-padding-*));
+    scroll-padding-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility scroll-pt-safe {
+  scroll-padding-top: var(--safe-inset-top, env(safe-area-inset-top, 0px));
+}
+
+@utility scroll-pt-safe-* {
+  scroll-padding-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*));
+  scroll-padding-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--scroll-padding-*));
+  scroll-padding-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*]));
+}
+
+@utility scroll-pt-safe-or-* {
+  scroll-padding-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*));
+  scroll-padding-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--scroll-padding-*));
+  scroll-padding-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*]));
+}
+
+@utility scroll-pr-safe {
+  scroll-padding-right: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+}
+
+@utility scroll-pr-safe-* {
+  scroll-padding-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  scroll-padding-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-padding-*));
+  scroll-padding-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+}
+
+@utility scroll-pr-safe-or-* {
+  scroll-padding-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  scroll-padding-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-padding-*));
+  scroll-padding-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+}
+
+@utility scroll-pb-safe {
+  scroll-padding-bottom: var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility scroll-pb-safe-* {
+  scroll-padding-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  scroll-padding-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--scroll-padding-*));
+  scroll-padding-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility scroll-pb-safe-or-* {
+  scroll-padding-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  scroll-padding-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--scroll-padding-*));
+  scroll-padding-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility scroll-pl-safe {
+  scroll-padding-left: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility scroll-pl-safe-* {
+  scroll-padding-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  scroll-padding-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-padding-*));
+  scroll-padding-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility scroll-pl-safe-or-* {
+  scroll-padding-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-padding-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  scroll-padding-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-padding-*));
+  scroll-padding-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+/* Scroll margin --------------------------------------------------------- */
+
+@utility scroll-m-safe {
+  scroll-margin: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility scroll-m-safe-* {
+  scroll-margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  scroll-margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--scroll-margin-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-margin-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--scroll-margin-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-margin-*));
+  scroll-margin: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility scroll-m-safe-or-* {
+  scroll-margin: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  scroll-margin: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--scroll-margin-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-margin-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--scroll-margin-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-margin-*));
+  scroll-margin: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+@utility scroll-mx-safe {
+  scroll-margin-inline: var(--safe-inset-left, env(safe-area-inset-left, 0px)) var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline: var(--safe-inset-right, env(safe-area-inset-right, 0px)) var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility scroll-mx-safe-* {
+  scroll-margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  scroll-margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-margin-*)) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-margin-*));
+  scroll-margin-inline: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    scroll-margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-margin-*)) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-margin-*));
+    scroll-margin-inline: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])) calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility scroll-mx-safe-or-* {
+  scroll-margin-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  scroll-margin-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-margin-*)) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-margin-*));
+  scroll-margin-inline: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-margin-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    scroll-margin-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-margin-*)) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-margin-*));
+    scroll-margin-inline: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])) max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility scroll-my-safe {
+  scroll-margin-block: var(--safe-inset-top, env(safe-area-inset-top, 0px)) var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility scroll-my-safe-* {
+  scroll-margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  scroll-margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--scroll-margin-*)) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--scroll-margin-*));
+  scroll-margin-block: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility scroll-my-safe-or-* {
+  scroll-margin-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  scroll-margin-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--scroll-margin-*)) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--scroll-margin-*));
+  scroll-margin-block: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility scroll-ms-safe {
+  scroll-margin-inline-start: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline-start: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  }
+}
+
+@utility scroll-ms-safe-* {
+  scroll-margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  scroll-margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-margin-*));
+  scroll-margin-inline-start: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+    scroll-margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-margin-*));
+    scroll-margin-inline-start: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  }
+}
+
+@utility scroll-ms-safe-or-* {
+  scroll-margin-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  scroll-margin-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-margin-*));
+  scroll-margin-inline-start: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-margin-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+    scroll-margin-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-margin-*));
+    scroll-margin-inline-start: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  }
+}
+
+@utility scroll-me-safe {
+  scroll-margin-inline-end: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline-end: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+
+@utility scroll-me-safe-* {
+  scroll-margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  scroll-margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-margin-*));
+  scroll-margin-inline-end: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+    scroll-margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-margin-*));
+    scroll-margin-inline-end: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  }
+}
+
+@utility scroll-me-safe-or-* {
+  scroll-margin-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  scroll-margin-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-margin-*));
+  scroll-margin-inline-end: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+  &:where(:dir(rtl)) {
+    scroll-margin-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+    scroll-margin-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+    scroll-margin-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-margin-*));
+    scroll-margin-inline-end: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+  }
+}
+
+@utility scroll-mt-safe {
+  scroll-margin-top: var(--safe-inset-top, env(safe-area-inset-top, 0px));
+}
+
+@utility scroll-mt-safe-* {
+  scroll-margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*));
+  scroll-margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--scroll-margin-*));
+  scroll-margin-top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*]));
+}
+
+@utility scroll-mt-safe-or-* {
+  scroll-margin-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*));
+  scroll-margin-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--scroll-margin-*));
+  scroll-margin-top: max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*]));
+}
+
+@utility scroll-mr-safe {
+  scroll-margin-right: var(--safe-inset-right, env(safe-area-inset-right, 0px));
+}
+
+@utility scroll-mr-safe-* {
+  scroll-margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
+  scroll-margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--scroll-margin-*));
+  scroll-margin-right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+}
+
+@utility scroll-mr-safe-or-* {
+  scroll-margin-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*));
+  scroll-margin-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--scroll-margin-*));
+  scroll-margin-right: max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*]));
+}
+
+@utility scroll-mb-safe {
+  scroll-margin-bottom: var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+@utility scroll-mb-safe-* {
+  scroll-margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
+  scroll-margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--scroll-margin-*));
+  scroll-margin-bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+}
+
+@utility scroll-mb-safe-or-* {
+  scroll-margin-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*));
+  scroll-margin-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--scroll-margin-*));
+  scroll-margin-bottom: max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*]));
+}
+
+@utility scroll-ml-safe {
+  scroll-margin-left: var(--safe-inset-left, env(safe-area-inset-left, 0px));
+}
+
+@utility scroll-ml-safe-* {
+  scroll-margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
+  scroll-margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--scroll-margin-*));
+  scroll-margin-left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+}
+
+@utility scroll-ml-safe-or-* {
+  scroll-margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number)));
+  scroll-margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*));
+  scroll-margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--scroll-margin-*));
+  scroll-margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
+}
+
+/* Full-height app shells ------------------------------------------------ */
+
+@utility h-dvh-safe {
+  height: calc(100dvh - var(--safe-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+@utility min-h-dvh-safe {
+  min-height: calc(100dvh - var(--safe-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+@utility max-h-dvh-safe {
+  max-height: calc(100dvh - var(--safe-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+/* Opting out: zero the insets for an element and its descendants ------- */
+
+@utility safe-none {
+  --safe-inset-top: 0px;
+  --safe-inset-right: 0px;
+  --safe-inset-bottom: 0px;
+  --safe-inset-left: 0px;
+}
+
+@utility safe-x-none {
+  --safe-inset-left: 0px;
+  --safe-inset-right: 0px;
+}
+
+@utility safe-y-none {
+  --safe-inset-top: 0px;
+  --safe-inset-bottom: 0px;
+}
+
+@utility safe-t-none {
+  --safe-inset-top: 0px;
+}
+
+@utility safe-r-none {
+  --safe-inset-right: 0px;
+}
+
+@utility safe-b-none {
+  --safe-inset-bottom: 0px;
+}
+
+@utility safe-l-none {
+  --safe-inset-left: 0px;
+}
