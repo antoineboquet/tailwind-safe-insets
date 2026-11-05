@@ -1,0 +1,141 @@
+# tailwind-safe-insets
+
+> Tailwind CSS v4 utilities that keep content clear of the notch, the status bar and the home indicator (CSS safe-area insets). CSS only, no JavaScript at runtime. An optional tailwind-merge helper is included.
+
+This file is a reference for coding assistants. The full documentation is the package README.
+
+## Setup
+
+All three steps are required:
+
+1. `npm install tailwind-safe-insets`
+2. In the main CSS file, after Tailwind:
+   ```css
+   @import "tailwindcss";
+   @import "tailwind-safe-insets";
+   ```
+3. In the HTML `<head>`. Without `viewport-fit=cover`, every inset is 0 and the utilities do nothing:
+   ```html
+   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+   ```
+
+If the project merges classes with `cn()` or `twMerge`, extend tailwind-merge (see "tailwind-merge" below).
+
+## Class grammar
+
+Every utility has three forms:
+
+| Form | Meaning | Example on an iPhone (34px bottom inset) |
+| --- | --- | --- |
+| `{prefix}-safe` | the inset | `pb-safe` → 34px |
+| `{prefix}-safe-{value}` | inset **plus** value | `pb-safe-6` → 34px + 1.5rem = 58px |
+| `{prefix}-safe-or-{value}` | the **larger** of inset and value | `pb-safe-or-6` → max(34px, 1.5rem) = 34px |
+
+On a desktop, where every inset is 0: `pb-safe` → 0, `pb-safe-6` → 1.5rem, `pb-safe-or-6` → 1.5rem.
+
+Prefixes:
+
+- **Padding:** `p`, `px`, `py`, `ps`, `pe`, `pt`, `pr`, `pb`, `pl`.
+- **Margin:** `m`, `mx`, `my`, `ms`, `me`, `mt`, `mr`, `mb`, `ml`. Negative margins exist too: `-mx-safe-4`.
+- **Position:** `inset`, `inset-x`, `inset-y`, `inset-s`, `inset-e`, `top`, `right`, `bottom`, `left`.
+- **Scroll padding:** `scroll-p`, `scroll-px`, … `scroll-pl`, same sides as padding.
+- **Scroll margin:** `scroll-m`, `scroll-mx`, … `scroll-ml`, same sides as margin.
+- **Viewport sizes:**
+  - `h-dvh`, `min-h-dvh` and `max-h-dvh` subtract the top and bottom insets from `100dvh`;
+  - `w-dvw` and `max-w-dvw` subtract the left and right insets from `100dvw`;
+  - the value applies on each side: `max-h-dvh-safe-4` is `100dvh - (top + 1rem) - (bottom + 1rem)`.
+
+Values after `-safe-` and `-safe-or-`:
+
+- **Spacing scale:** `4`, `1.5`, `0.5`.
+- **Theme tokens:** `sm`, read like the core utility reads them (`--padding-sm`, else `--spacing-sm`). Viewport sizes read `--spacing-*` only.
+- **One arbitrary value:** `[20px]`, `[var(--gap)]`. A single value only: `p-safe-[1rem_2rem]` produces invalid CSS, so write `py-safe-[1rem] px-safe-[2rem]`.
+- **Fractions:** `1/2`, `1/3`, on `top`, `right`, `bottom` and `left` only. A fraction means a fraction **of the safe area**: `top-safe-1/2` is the middle between the top and bottom insets.
+
+Opt-out classes: `safe-none`, `safe-x-none`, `safe-y-none`, `safe-t-none`, `safe-r-none`, `safe-b-none`, `safe-l-none`. They set the insets to 0 for an element and all its descendants.
+
+## Choosing a class
+
+| Intent | Use |
+| --- | --- |
+| Header under the status bar | `sticky top-0 pt-safe-4 px-safe-4` |
+| Bottom tab bar | `fixed inset-x-0 bottom-0 px-safe pb-safe-or-2` |
+| Floating action button | `fixed right-safe-4 bottom-safe-or-4` |
+| Page gutters that clear a landscape notch | `px-safe-4` |
+| Bottom padding of the last content block | `pb-safe-6` |
+| Modal centered between the insets | `fixed top-safe-1/2 left-safe-1/2 -translate-x-1/2 -translate-y-1/2 w-dvw-safe-4 max-w-lg max-h-dvh-safe-4 overflow-y-auto` |
+| Modal centered without a transform | `fixed inset-safe-or-4 m-auto w-fit h-fit max-w-lg max-h-dvh-safe-or-4 overflow-y-auto` |
+| Panel between status bar and home indicator | `fixed top-safe inset-x-0 h-dvh-safe overflow-y-auto` |
+| Child bleeding to the screen edge through `px-safe-4` | `-mx-safe-4` |
+| Anchor targets below a sticky header of `h-16 pt-safe` | `scroll-pt-safe-16` on `<html>` |
+| Component rendered away from the screen edge (card, drawer) | `safe-none` on its root |
+
+Rule of thumb:
+- Use `-safe-{value}` when content needs its normal spacing in addition to the device chrome (text, headers, gutters).
+- Use `-safe-or-{value}` when the inset alone is enough room and the value is only a minimum (tab bars, floating buttons, sticky footers).
+
+## Rules
+
+- **Replace hand-written safe-area CSS with the utilities:**
+  - `pt-[env(safe-area-inset-top)]` → `pt-safe`;
+  - `pt-[calc(env(safe-area-inset-top)+1rem)]` → `pt-safe-4`;
+  - `pt-[max(env(safe-area-inset-top),1rem)]` → `pt-safe-or-4`;
+  - `max-h-[calc(100dvh-2rem)]` → `max-h-dvh-safe-4`;
+  - `top-1/2` in a modal → `top-safe-1/2`.
+- **Fractions vs arbitrary values:** `top-safe-[50%]` means top inset + 50%, which is not the middle of the safe area. Use `top-safe-1/2`.
+- **Modals:**
+  - Pair `top-safe-1/2` with the additive cap `max-h-dvh-safe-{n}`. With `max-h-dvh-safe-or-{n}`, the gaps are unequal when only one inset is smaller than the gap.
+  - For the `-or-` behaviour, use the transform-free modal pattern above.
+  - `h-fit` needs the `max-h-dvh-safe-or-*` cap, or tall content overflows the screen.
+- **Containing block:** fractions and viewport sizes assume a `fixed` element whose containing block is the viewport. An ancestor with `transform`, `filter`, `backdrop-filter`, `perspective`, `contain: paint` or `will-change: transform` breaks that.
+- **Do not stack** a core class and its safe counterpart on the same element (`pt-4 pt-safe-4`) unless tailwind-merge is extended. Pick one.
+- **Physical and logical sides:**
+  - Insets are physical. `pl-safe`, `pr-safe`, `left-safe` and `px-safe` keep each inset on its own side in RTL.
+  - `ps-safe`, `pe-safe`, `ms-safe`, `me-safe`, `inset-s-safe` and `inset-e-safe` follow the text direction (`:dir(rtl)`).
+- **Overriding the insets:**
+  - Custom insets, for example from a native webview bridge: set `--safe-inset-top`, `--safe-inset-right`, `--safe-inset-bottom` or `--safe-inset-left`.
+  - `[--safe-inset-bottom:initial]` switches one inset back on inside a `safe-none` subtree.
+
+## Classes that do not exist
+
+Do not generate these. Use the replacement:
+
+| Wrong | Use instead |
+| --- | --- |
+| `pt-safe-offset-4` (from tailwindcss-safe-area) | `pt-safe-4` |
+| `pt-safe-4` meaning "at least 1rem" (from tailwindcss-padding-safe) | `pt-safe-or-4` |
+| `top-safe-center` | `top-safe-1/2` |
+| `start-safe`, `end-safe` | `inset-s-safe`, `inset-e-safe` |
+| `-top-safe-4`, `-scroll-mt-safe-4` (negative values other than margins) | an arbitrary value: `top-[calc(-1*(env(safe-area-inset-top)+1rem))]` |
+| `pbs-safe`, `mbe-safe`, `inset-bs-safe` (block-logical) | `pt-safe`, `mb-safe`, `top-safe` |
+| `h-svh-safe`, `h-lvh-safe`, `h-screen-safe` | `h-dvh-safe` |
+| `min-w-dvw-safe`, `w-dvh-safe`, `size-dvh-safe` | `w-dvw-safe`, `max-w-dvw-safe`, `h-dvh-safe` |
+| `border-t-safe` | not covered by this package |
+| `pt-safe-px`, `pt-safe-auto`, `top-safe-full` | `pt-safe-[1px]`; `auto` and `full` are not supported |
+| `inset-y-safe-1/2`, `top-safe-or-1/2`, `pt-safe-1/2` | fractions exist only as `top-`, `right-`, `bottom-` and `left-safe-{a}/{b}` |
+| `max-w-dvw-safe-lg` expecting `--container-lg` | viewport sizes read `--spacing-*` only: `max-w-dvw-safe-4 max-w-lg` |
+
+## tailwind-merge
+
+Without the helper, `twMerge("pt-4 pt-safe-4")` keeps both classes. With it, the safe classes join the core groups:
+
+```ts
+import { extendTailwindMerge } from "tailwind-merge";
+import { withSafeInsets } from "tailwind-safe-insets/merge";
+
+export const twMerge = extendTailwindMerge(withSafeInsets);
+// twMerge("pt-4 pt-safe-4") === "pt-safe-4"
+// twMerge("top-1/2 top-safe-1/2") === "top-safe-1/2"
+// twMerge("max-h-[calc(100dvh-2rem)] max-h-dvh-safe-4") === "max-h-dvh-safe-4"
+```
+
+- `withSafeInsets` composes with other plugins; `safeInsets` is the same extension as a config object.
+- Requires tailwind-merge 3.
+- When a component library merges classes with its own tailwind-merge instance, pass the extension to that instance.
+
+## Troubleshooting
+
+- **The insets are always 0.** `viewport-fit=cover` is missing, or the page is not on a device with insets. On desktop, 0 is expected.
+- **An element is off-center or too tall** with `top-safe-1/2` or `max-h-dvh-safe-*`. Check for a transformed or filtered ancestor (see "Containing block" under Rules).
+- **There is extra space inside a card or a drawer.** The component uses `pb-safe-*` but does not touch the screen edge: add `safe-none` to its root.
+- **An override does not apply.** tailwind-merge is not extended, so both classes stay and the stylesheet order decides.
