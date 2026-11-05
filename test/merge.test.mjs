@@ -3,7 +3,16 @@ import assert from "node:assert/strict";
 import { extendTailwindMerge, twMerge as defaultTwMerge } from "tailwind-merge";
 // Imported by package name to exercise the "exports" map.
 import { safeInsets, withSafeInsets } from "tailwind-safe-insets/merge";
-import { coreCandidates, coreOf, families, ourCandidates } from "./helpers.mjs";
+import {
+  coreCandidates,
+  coreOf,
+  families,
+  fractionCandidates,
+  fractionNeighbours,
+  ourCandidates,
+  sizeCandidates,
+  sizeNeighbours,
+} from "./helpers.mjs";
 
 const twMerge = extendTailwindMerge(withSafeInsets);
 
@@ -39,6 +48,30 @@ test("typical overrides resolve like their core counterparts", () => {
     "scroll-pt-16 scroll-pt-safe-16": "scroll-pt-safe-16",
     "h-dvh h-dvh-safe": "h-dvh-safe",
     "min-h-screen min-h-dvh-safe": "min-h-dvh-safe",
+    "max-h-[calc(100dvh-2rem)] max-h-dvh-safe-4": "max-h-dvh-safe-4",
+    "max-h-dvh-safe-4 max-h-dvh-safe-or-4": "max-h-dvh-safe-or-4",
+    "h-dvh h-dvh-safe-4": "h-dvh-safe-4",
+    "min-h-screen min-h-dvh-safe-or-2": "min-h-dvh-safe-or-2",
+    "min-h-dvh-safe-4 min-h-0": "min-h-0",
+    "min-h-dvh-safe-4 h-4": "min-h-dvh-safe-4 h-4",
+    "w-[calc(100vw-2rem)] w-dvw-safe-4": "w-dvw-safe-4",
+    "w-screen w-dvw-safe-or-4": "w-dvw-safe-or-4",
+    "max-w-screen-md max-w-dvw-safe": "max-w-dvw-safe",
+    "max-w-lg max-w-dvw-safe-4": "max-w-dvw-safe-4",
+    "max-w-dvw-safe-4 max-w-lg": "max-w-lg",
+    "size-full h-dvh-safe-4": "size-full h-dvh-safe-4",
+    "h-dvh-safe-4 size-full": "size-full",
+    "max-h-dvh-safe-4 sm:max-h-dvh-safe-8": "max-h-dvh-safe-4 sm:max-h-dvh-safe-8",
+    "sm:max-h-dvh-safe-4 sm:max-h-dvh-safe-8": "sm:max-h-dvh-safe-8",
+    "!max-h-dvh-safe-4 !max-h-dvh-safe-8": "!max-h-dvh-safe-8",
+    "top-1/2 top-safe-1/2": "top-safe-1/2",
+    "top-[50%] top-safe-1/2": "top-safe-1/2",
+    "top-safe-1/2 inset-y-0": "inset-y-0",
+    "inset-y-0 top-safe-1/2": "inset-y-0 top-safe-1/2",
+    "top-safe-1/2 inset-0": "inset-0",
+    "left-1/2 left-safe-1/2": "left-safe-1/2",
+    "start-0 left-safe-1/2": "start-0 left-safe-1/2",
+    "-translate-y-1/2 top-safe-1/2": "-translate-y-1/2 top-safe-1/2",
     "md:pt-4 md:pt-safe-4": "md:pt-safe-4",
     "pt-4 md:pt-safe-4": "pt-4 md:pt-safe-4",
     "safe-b-none pb-safe-4": "safe-b-none pb-safe-4",
@@ -74,8 +107,29 @@ test("every merge decision mirrors the one for the core counterparts", () => {
   assert.deepEqual(wrong.slice(0, 20), []);
 });
 
+test("viewport sizes and fractions merge like their core counterparts", () => {
+  // Same check as for the families, against the core utilities they sit among.
+  const outcome = (a, b, result) =>
+    result === `${a} ${b}` ? "both" : result === b ? "second" : result === a ? "first" : `other: ${result}`;
+  // Leaves out core classes this tailwind-merge version does not know (inset-s-* in 3.0).
+  const known = (name) => !name.endsWith("-2") || defaultTwMerge(`${name} ${name.replace(/-2$/, "-4")}`) === name.replace(/-2$/, "-4");
+  const wrong = [];
+  for (const [ours, neighbours] of [[sizeCandidates(), sizeNeighbours], [fractionCandidates(), fractionNeighbours]]) {
+    const all = [...ours, ...neighbours.filter(known).map((name) => ({ name, core: name }))];
+    for (const a of all) {
+      for (const b of all) {
+        if (a === b) continue;
+        const mine = outcome(a.name, b.name, twMerge(`${a.name} ${b.name}`));
+        const core = a.core === b.core ? "second" : outcome(a.core, b.core, twMerge(`${a.core} ${b.core}`));
+        if (mine !== core) wrong.push(`${a.name} ${b.name} → ${mine} (core ${a.core} ${b.core} → ${core})`);
+      }
+    }
+  }
+  assert.deepEqual(wrong.slice(0, 20), []);
+});
+
 test("core-only merges are unchanged by the extension", () => {
-  for (const s of ["p-4 p-2", "px-2 p-4", "p-4 px-2", "ps-2 px-4", "inset-0 top-2", "top-2 inset-0", "-mt-2 mt-4", "h-full h-screen"]) {
+  for (const s of ["p-4 p-2", "px-2 p-4", "p-4 px-2", "ps-2 px-4", "inset-0 top-2", "top-2 inset-0", "-mt-2 mt-4", "h-full h-screen", "max-h-dvh max-h-screen", "w-full max-w-lg", "top-1/2 top-0"]) {
     assert.equal(twMerge(s), defaultTwMerge(s), s);
   }
 });

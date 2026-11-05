@@ -74,12 +74,45 @@ export function coreOf(c, known = () => true) {
   return !known(name) && ALIASES[c.shape] ? `${ALIASES[c.shape]}-2` : name;
 }
 
+/** Viewport sizes: our shape, the core utility it stands in for, and the insets it subtracts. */
+export const sizes = [
+  { shape: "h-dvh", core: "h", axis: ["top", "bottom"] },
+  { shape: "min-h-dvh", core: "min-h", axis: ["top", "bottom"] },
+  { shape: "max-h-dvh", core: "max-h", axis: ["top", "bottom"] },
+  { shape: "w-dvw", core: "w", axis: ["left", "right"] },
+  { shape: "max-w-dvw", core: "max-w", axis: ["left", "right"] },
+];
+
+/** Our viewport sizes in their three forms, as { name, core, axis }: max-h-dvh-safe-or-2 → max-h-2. */
+export const sizeCandidates = () =>
+  sizes.flatMap(({ shape, core, axis }) => FORMS.map((form) => ({ name: `${shape}${form}`, core: `${core}-2`, axis })));
+
+/** Core utilities the viewport sizes sit among. */
+export const sizeNeighbours = ["size-2", "h-2", "min-h-2", "max-h-2", "w-2", "min-w-2", "max-w-2"];
+
+/** Fractions of the safe area, as { name, core, side, axis }: top-safe-1/2 → top-1/2. */
+export const fractionCandidates = () =>
+  [
+    ["top", ["top", "bottom"]],
+    ["right", ["left", "right"]],
+    ["bottom", ["top", "bottom"]],
+    ["left", ["left", "right"]],
+  ].map(([side, axis]) => ({ name: `${side}-safe-1/2`, core: `${side}-1/2`, side, axis }));
+
+/** Core utilities the fractions sit among: the position family and the translate used to center. */
+export const fractionNeighbours = [
+  ...families.position.core.map((shape) => `${shape}-2`),
+  "translate-x-2",
+  "translate-y-2",
+  "-translate-x-1/2",
+  "-translate-y-1/2",
+];
+
 /** Every utility the README documents, with a sample value where needed. */
 export const documented = [
   ...Object.keys(families).flatMap((f) => ourCandidates(f).map((c) => c.name)),
-  "h-dvh-safe",
-  "min-h-dvh-safe",
-  "max-h-dvh-safe",
+  ...sizeCandidates().map((c) => c.name),
+  ...fractionCandidates().map((c) => c.name),
   ...Object.keys(toggles),
 ];
 
