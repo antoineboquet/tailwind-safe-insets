@@ -1,6 +1,6 @@
 # tailwind-safe-insets
 
-Safe-area-aware padding, margin, positioning and scroll offsets for Tailwind CSS v4, with the full Tailwind value syntax.
+Safe-area-aware padding, margin, positioning, scroll offsets and viewport sizes for Tailwind CSS v4, with the full Tailwind value syntax.
 
 ```html
 <header class="sticky top-0 pt-safe-4 px-safe-4">…</header>
@@ -11,11 +11,12 @@ Safe-area-aware padding, margin, positioning and scroll offsets for Tailwind CSS
 - **Every value Tailwind accepts**: `pt-safe-4`, `pt-safe-1.5`, `pt-safe-sm` (theme token), `pt-safe-[20px]`, `pt-safe-[var(--gap)]`.
 - **Two explicit behaviours**: `pt-safe-4` *adds* the spacing to the inset, `pt-safe-or-4` uses *whichever is larger*.
 - **Padding, margin (including negative), position and scroll offsets**: `p*-safe`, `m*-safe`, `-m*-safe`, `inset*-safe`, `top-safe`, `scroll-p*-safe`, `scroll-m*-safe`…
+- **Viewport sizes and centering for overlays**: `max-h-dvh-safe-4` keeps a gap inside the insets, `top-safe-1/2` is the middle of the safe area.
 - **Opt out per subtree**: `safe-none`, `safe-b-none`… zero the insets for a component that does not touch the screen edge.
 - **Behaves like core utilities**: each one writes the same CSS property as its Tailwind counterpart, so theme overrides such as `--spacing-4` apply and overrides work the same way: `p-safe-4 px-0` like `p-4 px-0`, `px-safe-4 ps-2` like `px-4 ps-2`.
 - **tailwind-merge support**: an optional helper teaches `twMerge` / `cn()` which classes conflict.
 - **RTL-aware**: insets are physical (a left notch stays on the left), so `px-safe` keeps each inset on its side in RTL, and the logical `ps-safe` / `pe-safe` / `inset-s-safe` / `inset-e-safe` read the inset on the start or end side.
-- Tested in CI against Tailwind CSS 4.0.0 and the latest release. The tailwind-merge helper is tested in CI against tailwind-merge 3.7 and was checked against 3.0.0 for this release.
+- Tested in CI against Tailwind CSS 4.0.0 and the latest release. The tailwind-merge helper is tested in CI against the locked tailwind-merge release and against 3.0.0.
 
 ## Installation
 
@@ -90,9 +91,52 @@ The position utilities follow Tailwind 4.2+ naming: `inset-s-safe` and `inset-e-
 
 In a horizontal carousel with scroll snapping, `scroll-px-safe-4` on the scroller keeps snapped items out from under a landscape notch.
 
-**Heights** for full-screen app shells subtract the top and bottom insets from the dynamic viewport height:
+**Viewport sizes** subtract the insets from the dynamic viewport, for full-screen app shells and for overlays that must stay clear of the device chrome. They take the three forms, and the value applies **on each side**, as with `py-safe-4` (`<top>` and `<bottom>` stand for the insets):
 
-- `h-dvh-safe`, `min-h-dvh-safe`, `max-h-dvh-safe` → `calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))`
+| Class                 | CSS                                                      |
+| --------------------- | -------------------------------------------------------- |
+| `max-h-dvh-safe`      | `calc(100dvh - <top> - <bottom>)`                        |
+| `max-h-dvh-safe-4`    | `calc(100dvh - (<top> + 1rem) - (<bottom> + 1rem))`      |
+| `max-h-dvh-safe-or-4` | `calc(100dvh - max(<top>, 1rem) - max(<bottom>, 1rem))`  |
+
+- Heights: `h-dvh-safe`, `min-h-dvh-safe` and `max-h-dvh-safe` subtract the top and bottom insets from `100dvh`.
+- Widths: `w-dvw-safe` and `max-w-dvw-safe` subtract the left and right insets from `100dvw`. There is no `min-w-dvw-safe`.
+- Theme tokens come from `--spacing-*` only. Core `max-w-lg` reads `--container-lg` (32rem) and `max-h-sm` reads `--max-height-sm`: those are sizes, while the value here is a gap subtracted twice. So `max-w-dvw-safe-lg` generates nothing unless you define `--spacing-lg`.
+- `100dvw`, like `100vw`, includes a classic desktop scrollbar, so `w-dvw-safe-4` is slightly too wide on a page that scrolls. When that matters, size the element with insets instead: `fixed inset-x-safe-4 mx-auto max-w-lg` fills the space between the insets, up to `max-w-lg`.
+
+### Centering in the safe area
+
+`top-1/2 -translate-y-1/2` centers in the viewport, so a tall modal can reach the status bar at the top and the rounded corners at the bottom. `top`, `right`, `bottom` and `left` take a fraction, which means a fraction **of the safe area**, measured from its edge:
+
+| Class            | CSS                                                       |
+| ---------------- | --------------------------------------------------------- |
+| `top-safe-1/2`   | `top: calc(<top> + (100% - <top> - <bottom>) * 1/2)`      |
+| `left-safe-1/2`  | `left: calc(<left> + (100% - <left> - <right>) * 1/2)`    |
+| `top-safe-1/3`   | `top: calc(<top> + (100% - <top> - <bottom>) * 1/3)`      |
+
+`top-safe-1/2` is the middle between the top and bottom insets. Use it instead of `top-1/2` and keep the translate:
+
+```html
+<div class="fixed top-safe-1/2 left-safe-1/2 -translate-x-1/2 -translate-y-1/2
+            w-dvw-safe-4 max-w-lg max-h-dvh-safe-4 sm:max-h-dvh-safe-8 overflow-y-auto">…</div>
+```
+
+- A fraction does not mean *inset plus value*, since inset + 50% is never the middle. `top-safe-[50%]` keeps that meaning, and a fraction in brackets (`top-safe-[1/2]`) produces invalid CSS: write fractions without brackets.
+- Only the four physical sides take fractions, and not in the `-or-` form. Centering pairs with a translate, which is physical, so there is no `inset-s-safe-1/2`.
+- `100%` is the size of the containing block, while the insets are those of the screen. The result is right for a `fixed` element, or an `absolute` one whose containing block covers the screen. A `fixed` element is positioned against an ancestor instead when that ancestor has `transform`, `translate`, `scale` or `rotate` (Tailwind's `translate-*`, `scale-*` and `rotate-*` set these, even at `translate-x-0` or `scale-100`), `filter`, `backdrop-filter`, `perspective`, `contain: layout` or `contain: paint`, or `will-change` naming one of them.
+- Pair a fraction with the additive cap (`max-h-dvh-safe-4`), whose box has the same middle, so both gaps are exact. With the `-or-` cap, the gaps come out unequal when only one inset is smaller than the gap (8px at the top and 29px at the bottom for an iPhone in landscape, instead of 16px and 21px).
+
+In Nuxt UI 4, this replaces the classes of the default modal (`top-1/2 … max-h-[calc(100dvh-2rem)]`). The `scrollable` modal is placed by a grid overlay instead, so these classes do not apply to it.
+
+For the `-or-` behaviour, center without a transform, the way browsers center a modal `<dialog>`: with insets on all four sides, `auto` margins and a capped size, the gaps are equal by construction.
+
+```html
+<div class="fixed inset-safe-or-4 m-auto h-fit max-w-lg max-h-dvh-safe-or-4 overflow-y-auto">…</div>
+```
+
+- The width fills the space between the left and right insets, up to `max-w-lg`. Do not add `w-fit`: a wide `<pre>` or table would then push the modal off the screen.
+- `h-fit` makes the height follow the content. Keep `max-h-dvh-safe-or-4`, or a tall modal overflows the screen instead of scrolling.
+- `height: fit-content` needs Firefox 94 or later.
 
 ### Accepted values
 
@@ -101,14 +145,15 @@ In a horizontal carousel with scroll snapping, `scroll-px-safe-4` on the scrolle
 | Spacing scale          | `pt-safe-4`, `pt-safe-1.5`, `pt-safe-or-0` |
 | Theme tokens           | `pt-safe-sm`, read like `pt-sm`: `--padding-sm` if defined, else `--spacing-sm` |
 | One arbitrary value    | `pt-safe-[20px]`, `pt-safe-[2%]`, `pt-safe-[var(--gap)]` |
+| Fractions              | `top-safe-1/2`, `left-safe-1/3`: a fraction of the safe area, on `top`, `right`, `bottom` and `left` only (see [Centering](#centering-in-the-safe-area)) |
 
-Theme tokens follow the same lookup as the core utility: `--padding-*` for `p*-safe`, `--margin-*` for `m*-safe`, `--inset-*` for the position utilities, `--scroll-padding-*` and `--scroll-margin-*` for the scroll ones, then `--spacing-*`.
+Theme tokens follow the same lookup as the core utility: `--padding-*` for `p*-safe`, `--margin-*` for `m*-safe`, `--inset-*` for the position utilities, `--scroll-padding-*` and `--scroll-margin-*` for the scroll ones, then `--spacing-*`. The viewport sizes are the exception: they read `--spacing-*` only.
 
 An arbitrary value must be a single value, since the inset is added to it: `p-safe-[1rem_2rem]` produces invalid CSS, so write `py-safe-[1rem] px-safe-[2rem]` instead.
 
 If your theme removes `--spacing` (a fixed scale defined with `--*: initial`), core utilities reject bare numbers such as `pt-3`, but `pt-safe-3` falls back to Tailwind's default 0.25rem step. Your theme tokens (`pt-safe-1` with `--spacing-1` defined) resolve as usual.
 
-Not supported: negative values other than margins (`-top-safe-4`, `-scroll-mt-safe-4`), fractions (`top-safe-1/2`, use `[50%]`), `auto`, and the `px` keyword (use `[1px]`).
+Not supported: negative values other than margins (`-top-safe-4`, `-scroll-mt-safe-4`), fractions outside `top`, `right`, `bottom` and `left` (`inset-y-safe-1/2`), `auto`, and the `px` keyword (use `[1px]`).
 
 There are no block-logical utilities (`pbs-safe`, `mbe-safe`, `inset-bs-safe`…) on purpose. In horizontal writing modes, block start is the top, so `pt-safe` does the same job. In vertical writing modes, block start is on the right or the left, and CSS cannot tell a utility which writing mode applies, so a `pbs-safe` would put the top inset on the wrong side. They still combine correctly with Tailwind's own `pbs-*`, `mbe-*`… utilities.
 
@@ -162,7 +207,11 @@ export const twMerge = extendTailwindMerge(withSafeInsets);
 twMerge("pt-4 pt-safe-4");   // "pt-safe-4"
 twMerge("px-0 p-safe-4");    // "p-safe-4"
 twMerge("p-safe-4 px-0");    // "p-safe-4 px-0" (px-0 still wins on left and right)
+twMerge("top-1/2 top-safe-1/2");                      // "top-safe-1/2"
+twMerge("max-h-[calc(100dvh-2rem)] max-h-dvh-safe-4");  // "max-h-dvh-safe-4"
 ```
+
+Without the helper, a safe class sometimes wins anyway because of where it sorts in the stylesheet (`top-safe-1/2` comes after `top-1/2`), but that is incidental: a component library that merges classes with its own tailwind-merge instance needs the extension passed to that instance.
 
 `withSafeInsets` composes with other plugins (`extendTailwindMerge(withSafeInsets, withOtherPlugin)`). If you prefer a config object, `safeInsets` works too: `extendTailwindMerge(safeInsets)`. Requires tailwind-merge 3.
 
@@ -174,7 +223,7 @@ Other Tailwind packages handle safe areas. Pick the one that fits what you need 
 
 |                                  | **tailwind-safe-insets** | [tailwindcss-safe-area] 1.3.0 | [tailwindcss-padding-safe] 2.0.0 |
 | -------------------------------- | ------------------------ | ----------------------------- | -------------------------------- |
-| Scope                            | padding, margin, position, scroll padding/margin, `dvh` heights | padding, margin, scroll padding/margin, position, heights (`vh`/`dvh`/`svh`/`lvh`), borders | padding, margin |
+| Scope                            | padding, margin, position (with fractions of the safe area), scroll padding/margin, `dvh` heights, `dvw` widths | padding, margin, scroll padding/margin, position, heights (`vh`/`dvh`/`svh`/`lvh`), borders | padding, margin |
 | Inset **plus** value             | `pt-safe-4`              | `pt-safe-offset-4`            | —                                |
 | **Larger** of inset and value    | `pt-safe-or-4`           | `pt-safe-or-4`                | `pt-safe-4`                      |
 | Fractional steps (`1.5`)         | ✓                        | ✗ (integers only)             | ✓                                |
@@ -203,7 +252,7 @@ npm install
 npm test
 ```
 
-The tests compile the utilities with Tailwind and check the generated CSS: values, the inset read on each side in LTR and RTL, a theme without `--spacing`, and that every utility writes the same property, reads the same theme token and sorts in the same order as its Tailwind counterpart. They also check that every tailwind-merge decision matches the one for the core counterparts, and type-check the helper.
+The tests compile the utilities with Tailwind and check the generated CSS: values, the inset read on each side in LTR and RTL, a theme without `--spacing`, and that every utility writes the same property, reads the same theme token and sorts in the same order as its Tailwind counterpart. The viewport sizes and fractions are checked against the core utilities they stand in for (`max-h-*`, `top-1/2`…), and the viewport sizes against size tokens they must not read. The tests also check that every tailwind-merge decision matches the one for the core counterparts, and type-check the helper.
 
 ## License
 

@@ -6,11 +6,16 @@ import {
   coreOf,
   documented,
   families,
+  fractionCandidates,
+  fractionNeighbours,
   ins,
   ourCandidates,
   parse,
   rtlRules,
   rules,
+  sizeCandidates,
+  sizes,
+  sizeNeighbours,
   toggles,
   winning,
 } from "./helpers.mjs";
@@ -184,10 +189,156 @@ test("every inset is read through its --safe-inset-* variable", async () => {
   assert.equal(envs, vars);
 });
 
-test("h-dvh-safe subtracts the top and bottom insets", async () => {
-  const r = rules(await build(["h-dvh-safe", "min-h-dvh-safe"]));
-  assert.deepEqual(r.get("h-dvh-safe"), [["height", `calc(100dvh - ${ins("top")} - ${ins("bottom")})`]]);
-  assert.deepEqual(r.get("min-h-dvh-safe"), [["min-height", `calc(100dvh - ${ins("top")} - ${ins("bottom")})`]]);
+test("viewport sizes subtract the insets of their axis", async () => {
+  const r = rules(await build(["h-dvh-safe", "min-h-dvh-safe", "max-h-dvh-safe", "w-dvw-safe", "max-w-dvw-safe"]));
+  const tb = `calc(100dvh - ${ins("top")} - ${ins("bottom")})`;
+  const lr = `calc(100dvw - ${ins("left")} - ${ins("right")})`;
+  assert.deepEqual(r.get("h-dvh-safe"), [["height", tb]]);
+  assert.deepEqual(r.get("min-h-dvh-safe"), [["min-height", tb]]);
+  assert.deepEqual(r.get("max-h-dvh-safe"), [["max-height", tb]]);
+  assert.deepEqual(r.get("w-dvw-safe"), [["width", lr]]);
+  assert.deepEqual(r.get("max-w-dvw-safe"), [["max-width", lr]]);
+});
+
+test("viewport sizes apply the value on each side, in the three forms", async () => {
+  const cands = ["max-h-dvh-safe-4", "h-dvh-safe-1.5", "min-h-dvh-safe-or-2", "max-h-dvh-safe-or-4", "w-dvw-safe-4", "max-w-dvw-safe-or-[20px]", "max-h-dvh-safe-[2rem]"];
+  const r = rules(await build(cands));
+  const n = (k) => `calc(var(--spacing) * ${k})`;
+  const plus = (a, b, v, unit = "dvh") => `calc(100${unit} - (${ins(a)} + ${v}) - (${ins(b)} + ${v}))`;
+  const or = (a, b, v, unit = "dvh") => `calc(100${unit} - max(${ins(a)}, ${v}) - max(${ins(b)}, ${v}))`;
+  assert.deepEqual(r.get("max-h-dvh-safe-4"), [["max-height", plus("top", "bottom", n(4))]]);
+  assert.deepEqual(r.get("h-dvh-safe-1.5"), [["height", plus("top", "bottom", n(1.5))]]);
+  assert.deepEqual(r.get("min-h-dvh-safe-or-2"), [["min-height", or("top", "bottom", n(2))]]);
+  assert.deepEqual(r.get("max-h-dvh-safe-or-4"), [["max-height", or("top", "bottom", n(4))]]);
+  assert.deepEqual(r.get("w-dvw-safe-4"), [["width", plus("left", "right", n(4), "dvw")]]);
+  assert.deepEqual(r.get("max-w-dvw-safe-or-[20px]"), [["max-width", or("left", "right", "20px", "dvw")]]);
+  assert.deepEqual(r.get("max-h-dvh-safe-[2rem]"), [["max-height", plus("top", "bottom", "2rem")]]);
+});
+
+test("viewport sizes reject off-scale numbers and have no min-w form", async () => {
+  const r = rules(await build(["max-h-dvh-safe-1.37", "max-h-dvh-safe-or-1.37", "w-dvw-safe-1.37", "min-w-dvw-safe", "min-w-dvw-safe-4"]));
+  assert.deepEqual([...r.keys()], []);
+});
+
+test("viewport sizes read --spacing-* tokens and no size namespace", async () => {
+  // Core h-*, w-*, max-w-*… read size tokens (--height-*, --container-*…).
+  // Here the value is a gap subtracted on each side, so only --spacing-* applies.
+  const theme = [
+    "--spacing-sm: 0.75rem; --spacing-4: 3rem;",
+    "--height-lg: 10rem; --min-height-lg: 10rem; --max-height-lg: 10rem;",
+    "--width-lg: 10rem; --max-width-lg: 10rem;",
+  ].join(" ");
+  const shapes = sizeCandidates().filter((c) => c.name.endsWith("-safe")).map((c) => c.name);
+  const cands = shapes.flatMap((c) => [`${c}-sm`, `${c}-or-sm`, `${c}-4`, `${c}-lg`, `${c}-or-lg`, `${c}-xl`]);
+  const r = rules(await build([...cands, "max-w-lg", "max-w-xl"], theme));
+  // The default theme defines --container-lg and --container-xl, read by core max-w-*.
+  assert.ok(r.has("max-w-lg") && r.has("max-w-xl"));
+  for (const c of shapes) {
+    for (const t of ["lg", "or-lg", "xl"]) assert.equal(r.has(`${c}-${t}`), false, `${c}-${t}`);
+    for (const t of ["sm", "or-sm", "4"]) {
+      const [[, value]] = r.get(`${c}-${t}`).slice(-1);
+      const token = t === "4" ? "--spacing-4" : "--spacing-sm";
+      assert.equal(value.split(`var(${token})`).length - 1, 2, `${c}-${t} reads ${token} on each side`);
+    }
+  }
+});
+
+test("every viewport size gives the exact value in every form", async () => {
+  const props = {
+    "h-dvh": ["height", "dvh"],
+    "min-h-dvh": ["min-height", "dvh"],
+    "max-h-dvh": ["max-height", "dvh"],
+    "w-dvw": ["width", "dvw"],
+    "max-w-dvw": ["max-width", "dvw"],
+  };
+  const values = {
+    4: "calc(var(--spacing) * 4)",
+    "1.5": "calc(var(--spacing) * 1.5)",
+    "[20px]": "20px",
+    sm: "var(--spacing-sm)",
+  };
+  const expected = new Map();
+  for (const { shape, axis: [a, b] } of sizes) {
+    const [prop, unit] = props[shape];
+    expected.set(`${shape}-safe`, [[prop, `calc(100${unit} - ${ins(a)} - ${ins(b)})`]]);
+    for (const [v, css] of Object.entries(values)) {
+      expected.set(`${shape}-safe-${v}`, [[prop, `calc(100${unit} - (${ins(a)} + ${css}) - (${ins(b)} + ${css}))`]]);
+      expected.set(`${shape}-safe-or-${v}`, [[prop, `calc(100${unit} - max(${ins(a)}, ${css}) - max(${ins(b)}, ${css}))`]]);
+    }
+  }
+  assert.equal(expected.size, sizes.length * 9);
+  const r = rules(await build([...expected.keys()], "--spacing-sm: 0.75rem;"));
+  const wrong = [...expected]
+    .filter(([name, decls]) => JSON.stringify(r.get(name)) !== JSON.stringify(decls))
+    .map(([name]) => `${name}: ${JSON.stringify(r.get(name))}`);
+  assert.deepEqual(wrong, []);
+});
+
+test("the spacing number keeps its 0.25rem fallback in the generated CSS", async () => {
+  // build() normalises the fallback away for the other tests; check it here on the raw output.
+  const shapes = [
+    ...Object.values(families).flatMap((f) => [...f.ours, ...(f.negative ? f.ours.map((s) => `-${s}`) : [])]),
+    ...sizes.map((s) => s.shape),
+  ];
+  const cands = shapes.flatMap((s) => [`${s}-safe-3`, `${s}-safe-or-3`]);
+  const r = rules(await build(cands, "--*: initial;", { raw: true }));
+  for (const c of cands) {
+    assert.ok(r.has(c), c);
+    assert.ok(r.get(c).some(([, v]) => v.includes("var(--spacing, 0.25rem) * 3")), `${c}: ${JSON.stringify(r.get(c))}`);
+  }
+});
+
+test("only top, right, bottom and left take a fraction, and never in the -or- form", async () => {
+  const shapes = [
+    ...Object.values(families).flatMap((f) => [...f.ours, ...(f.negative ? f.ours.map((s) => `-${s}`) : [])]),
+    ...sizes.map((s) => s.shape),
+  ];
+  const cands = shapes.flatMap((s) => [`${s}-safe-1/2`, `${s}-safe-or-1/2`]);
+  const r = rules(await build(cands));
+  assert.deepEqual(cands.filter((c) => r.has(c)).sort(), ["bottom-safe-1/2", "left-safe-1/2", "right-safe-1/2", "top-safe-1/2"]);
+});
+
+test("viewport sizes fall back to 0.25rem without --spacing", async () => {
+  const r = rules(await build(["max-h-dvh-safe-3", "max-h-dvh-safe-1", "w-dvw-safe-or-3"], "--*: initial; --spacing-1: 4px;"));
+  assert.equal(winning(r.get("max-h-dvh-safe-3"), "max-height"), `calc(100dvh - (${ins("top")} + calc(var(--spacing) * 3)) - (${ins("bottom")} + calc(var(--spacing) * 3)))`);
+  assert.equal(winning(r.get("max-h-dvh-safe-1"), "max-height"), `calc(100dvh - (${ins("top")} + var(--spacing-1)) - (${ins("bottom")} + var(--spacing-1)))`);
+  assert.equal(winning(r.get("w-dvw-safe-or-3"), "width"), `calc(100dvw - max(${ins("left")}, calc(var(--spacing) * 3)) - max(${ins("right")}, calc(var(--spacing) * 3)))`);
+});
+
+// Tailwind 4.0 prints a ratio as "1/2", later versions as "1 / 2".
+const ratio = (value) => value?.replace(/(\d) \/ (\d)/g, "$1/$2");
+
+test("top, right, bottom and left take a fraction of the safe area", async () => {
+  const r = rules(await build(["top-safe-1/2", "right-safe-1/2", "bottom-safe-1/3", "left-safe-2/3"]));
+  const frac = (side, a, b, f) => [[side, `calc(${ins(side)} + (100% - ${ins(a)} - ${ins(b)}) * ${f})`]];
+  const norm = (decls) => decls?.map(([p, v]) => [p, ratio(v)]);
+  assert.deepEqual(norm(r.get("top-safe-1/2")), frac("top", "top", "bottom", "1/2"));
+  assert.deepEqual(norm(r.get("right-safe-1/2")), frac("right", "left", "right", "1/2"));
+  assert.deepEqual(norm(r.get("bottom-safe-1/3")), frac("bottom", "top", "bottom", "1/3"));
+  assert.deepEqual(norm(r.get("left-safe-2/3")), frac("left", "left", "right", "2/3"));
+});
+
+test("fractions leave the other values alone and have no -or- form", async () => {
+  const r = rules(await build(["top-safe-4", "top-safe-1.5", "top-safe-[10px]", "top-safe-or-4", "top-safe-or-1/2", "inset-safe-1/2", "inset-y-safe-1/2", "inset-s-safe-1/2"]));
+  for (const c of ["top-safe-4", "top-safe-1.5", "top-safe-[10px]", "top-safe-or-4"]) {
+    assert.ok(r.has(c), c);
+    assert.ok(r.get(c).every(([, v]) => !v.includes("100%")), `${c} has no fraction declaration`);
+  }
+  assert.equal(winning(r.get("top-safe-[10px]"), "top"), `calc(${ins("top")} + 10px)`);
+  for (const c of ["top-safe-or-1/2", "inset-safe-1/2", "inset-y-safe-1/2", "inset-s-safe-1/2"]) assert.equal(r.has(c), false, c);
+});
+
+test("viewport sizes and fractions read the insets of their axis, with no rtl variant", async () => {
+  const cands = [...sizeCandidates(), ...fractionCandidates()];
+  const css = await build(cands.map((c) => c.name));
+  const r = rules(css);
+  const rtl = rtlRules(css);
+  for (const c of cands) {
+    const expected = c.side ? [c.side, ...c.axis] : c.axis;
+    assert.ok(r.has(c.name), c.name);
+    for (const [, value] of r.get(c.name)) assert.deepEqual(sidesIn(value), expected, c.name);
+    assert.equal(rtl.has(c.name), false, `${c.name} should not change under rtl`);
+  }
 });
 
 test("every documented utility generates CSS", async () => {
@@ -216,7 +367,9 @@ test("each side reads the right inset, in LTR and in RTL", async () => {
   const css = await build(documented);
   const rtl = rtlRules(css);
   for (const [cls, { decls }] of parse(css)) {
-    if (cls.includes("dvh") || cls.startsWith("safe-")) continue;
+    // Viewport sizes and fractions read two or three insets on one property:
+    // see "viewport sizes and fractions read the insets of their axis".
+    if (/dvh|dvw|\//.test(cls) || cls.startsWith("safe-")) continue;
     const props = new Set(decls.map(([p]) => p));
     assert.equal(props.size, 1, `${cls} writes a single property`);
     const [prop] = props;
@@ -271,6 +424,35 @@ test("stylesheet order matches core, so overrides behave like p-4 / px-2 / ps-0"
         const ours = Math.sign(order.indexOf(a.name) - order.indexOf(b.name));
         const core = Math.sign(order.indexOf(coreOfKnown(a)) - order.indexOf(coreOfKnown(b)));
         if (ours !== core) wrong.push(`${a.name} vs ${b.name} (core: ${coreOfKnown(a)} vs ${coreOfKnown(b)})`);
+      }
+    }
+  }
+  assert.deepEqual(wrong.slice(0, 20), []);
+});
+
+test("viewport sizes and fractions write the same property as their core counterpart", async () => {
+  const cands = [...sizeCandidates(), ...fractionCandidates()];
+  const r = rules(await build([...cands.map((c) => c.name), ...cands.map((c) => c.core)]));
+  const props = (name) => [...new Set(r.get(name).map(([p]) => p))].join();
+  const wrong = cands.filter((c) => props(c.name) !== props(c.core)).map((c) => `${c.name}: ${props(c.name)} vs ${c.core}: ${props(c.core)}`);
+  assert.deepEqual(wrong, []);
+});
+
+test("viewport sizes and fractions sort like their core counterparts", async () => {
+  // Same check as for the families, against the core utilities they sit among.
+  const wrong = [];
+  for (const [ours, neighbours] of [[sizeCandidates(), sizeNeighbours], [fractionCandidates(), fractionNeighbours]]) {
+    const all = [...ours, ...neighbours.map((name) => ({ name, core: name }))];
+    const r = rules(await build([...all.map((c) => c.name), ...ours.map((c) => c.core)]));
+    const order = [...r.keys()];
+    const present = all.filter((c) => r.has(c.name) && r.has(c.core));
+    const props = (c) => r.get(c.core).map(([p]) => p).join();
+    for (const a of present) {
+      for (const b of present) {
+        if (props(a) === props(b)) continue;
+        const mine = Math.sign(order.indexOf(a.name) - order.indexOf(b.name));
+        const core = Math.sign(order.indexOf(a.core) - order.indexOf(b.core));
+        if (mine !== core) wrong.push(`${a.name} vs ${b.name} (core: ${a.core} vs ${b.core})`);
       }
     }
   }

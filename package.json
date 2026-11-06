@@ -1,7 +1,7 @@
 {
   "name": "tailwind-safe-insets",
-  "version": "0.1.0",
-  "description": "Safe-area-aware padding, margin, positioning and scroll utilities for Tailwind CSS v4, with the full Tailwind value syntax and tailwind-merge support.",
+  "version": "0.2.0",
+  "description": "Safe-area-aware padding, margin, positioning, scroll and viewport-size utilities for Tailwind CSS v4, with the full Tailwind value syntax and tailwind-merge support.",
   "license": "MIT",
   "author": "Antoine Boquet",
   "keywords": [
@@ -18,6 +18,10 @@
     "position",
     "margin",
     "padding",
+    "dvh",
+    "dvw",
+    "viewport",
+    "modal",
     "css",
     "utilities",
     "tailwind-merge"
@@ -45,7 +49,8 @@
   "files": [
     "index.css",
     "merge.mjs",
-    "merge.d.mts"
+    "merge.d.mts",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs && tsc -p test/types"

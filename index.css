@@ -8,13 +8,21 @@
  *   pt-safe-or-4   padding-top: max(<inset>, 4 spacing units) (at least)
  *
  * Families: padding (p*), margin (m*, and negative -m*), position (inset,
- * inset-x, inset-y, inset-s, inset-e, top, right, bottom, left), scroll padding (scroll-p*) and
- * scroll margin (scroll-m*).
+ * inset-x, inset-y, inset-s, inset-e, top, right, bottom, left), scroll padding (scroll-p*),
+ * scroll margin (scroll-m*), and viewport sizes (h-dvh, min-h-dvh, max-h-dvh,
+ * w-dvw, max-w-dvw), where the value applies on each side:
+ *
+ *   max-h-dvh-safe-4   max-height: 100dvh - (<top> + 4 units) - (<bottom> + 4 units)
  *
  * Values accepted after "-safe-" and "-safe-or-":
  *   - bare numbers on the spacing scale:  pt-safe-4, pt-safe-1.5
  *   - theme tokens, like core utilities:  pt-safe-sm (--padding-sm, else --spacing-sm)
  *   - one arbitrary value:                pt-safe-[20px], pt-safe-[var(--gap)]
+ *
+ * Viewport sizes read theme tokens from --spacing-* only. top, right, bottom
+ * and left also take a fraction, which means a fraction of the safe area
+ * (not inset plus value): top-safe-1/2 is the middle between the top and
+ * bottom insets, top: calc(<top> + (100% - <top> - <bottom>) * 1/2).
  *
  * <inset> is var(--safe-inset-<side>, env(safe-area-inset-<side>, 0px)):
  *   - safe-none, safe-x-none, safe-b-none, ... set the variables to 0px for an
@@ -806,6 +814,7 @@
   top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*));
   top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--inset-*));
   top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*]));
+  top: calc(var(--safe-inset-top, env(safe-area-inset-top, 0px)) + (100% - var(--safe-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px))) * --value(ratio));
 }
 
 @utility top-safe-or-* {
@@ -824,6 +833,7 @@
   right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*));
   right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--inset-*));
   right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*]));
+  right: calc(var(--safe-inset-right, env(safe-area-inset-right, 0px)) + (100% - var(--safe-inset-left, env(safe-area-inset-left, 0px)) - var(--safe-inset-right, env(safe-area-inset-right, 0px))) * --value(ratio));
 }
 
 @utility right-safe-or-* {
@@ -842,6 +852,7 @@
   bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*));
   bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--inset-*));
   bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*]));
+  bottom: calc(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + (100% - var(--safe-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px))) * --value(ratio));
 }
 
 @utility bottom-safe-or-* {
@@ -860,6 +871,7 @@
   left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*));
   left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--inset-*));
   left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*]));
+  left: calc(var(--safe-inset-left, env(safe-area-inset-left, 0px)) + (100% - var(--safe-inset-left, env(safe-area-inset-left, 0px)) - var(--safe-inset-right, env(safe-area-inset-right, 0px))) * --value(ratio));
 }
 
 @utility left-safe-or-* {
@@ -1287,18 +1299,91 @@
   scroll-margin-left: max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*]));
 }
 
-/* Full-height app shells ------------------------------------------------ */
+/* Viewport sizes --------------------------------------------------------- */
+
+/* The value applies on each side: max-h-dvh-safe-4 keeps 1rem below the top
+   inset and 1rem above the bottom one. Theme tokens come from --spacing-*
+   only: the value is a gap, not a size, so --height-*, --max-height-*,
+   --container-* and the like are not read. */
 
 @utility h-dvh-safe {
   height: calc(100dvh - var(--safe-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+@utility h-dvh-safe-* {
+  height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))));
+  height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)));
+  height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])));
+}
+
+@utility h-dvh-safe-or-* {
+  height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))));
+  height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)));
+  height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])));
 }
 
 @utility min-h-dvh-safe {
   min-height: calc(100dvh - var(--safe-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)));
 }
 
+@utility min-h-dvh-safe-* {
+  min-height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))));
+  min-height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)));
+  min-height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])));
+}
+
+@utility min-h-dvh-safe-or-* {
+  min-height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))));
+  min-height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)));
+  min-height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])));
+}
+
 @utility max-h-dvh-safe {
   max-height: calc(100dvh - var(--safe-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+@utility max-h-dvh-safe-* {
+  max-height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))));
+  max-height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value(--spacing-*)) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value(--spacing-*)));
+  max-height: calc(100dvh - (var(--safe-inset-top, env(safe-area-inset-top, 0px)) + --value([*])) - (var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)) + --value([*])));
+}
+
+@utility max-h-dvh-safe-or-* {
+  max-height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), calc(var(--spacing, 0.25rem) * --value(number))));
+  max-height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value(--spacing-*)) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value(--spacing-*)));
+  max-height: calc(100dvh - max(var(--safe-inset-top, env(safe-area-inset-top, 0px)), --value([*])) - max(var(--safe-inset-bottom, env(safe-area-inset-bottom, 0px)), --value([*])));
+}
+
+@utility w-dvw-safe {
+  width: calc(100dvw - var(--safe-inset-left, env(safe-area-inset-left, 0px)) - var(--safe-inset-right, env(safe-area-inset-right, 0px)));
+}
+
+@utility w-dvw-safe-* {
+  width: calc(100dvw - (var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) - (var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))));
+  width: calc(100dvw - (var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) - (var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)));
+  width: calc(100dvw - (var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) - (var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])));
+}
+
+@utility w-dvw-safe-or-* {
+  width: calc(100dvw - max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) - max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))));
+  width: calc(100dvw - max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) - max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)));
+  width: calc(100dvw - max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) - max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])));
+}
+
+@utility max-w-dvw-safe {
+  max-width: calc(100dvw - var(--safe-inset-left, env(safe-area-inset-left, 0px)) - var(--safe-inset-right, env(safe-area-inset-right, 0px)));
+}
+
+@utility max-w-dvw-safe-* {
+  max-width: calc(100dvw - (var(--safe-inset-left, env(safe-area-inset-left, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))) - (var(--safe-inset-right, env(safe-area-inset-right, 0px)) + calc(var(--spacing, 0.25rem) * --value(number))));
+  max-width: calc(100dvw - (var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value(--spacing-*)) - (var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value(--spacing-*)));
+  max-width: calc(100dvw - (var(--safe-inset-left, env(safe-area-inset-left, 0px)) + --value([*])) - (var(--safe-inset-right, env(safe-area-inset-right, 0px)) + --value([*])));
+}
+
+@utility max-w-dvw-safe-or-* {
+  max-width: calc(100dvw - max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), calc(var(--spacing, 0.25rem) * --value(number))) - max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), calc(var(--spacing, 0.25rem) * --value(number))));
+  max-width: calc(100dvw - max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value(--spacing-*)) - max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value(--spacing-*)));
+  max-width: calc(100dvw - max(var(--safe-inset-left, env(safe-area-inset-left, 0px)), --value([*])) - max(var(--safe-inset-right, env(safe-area-inset-right, 0px)), --value([*])));
 }
 
 /* Opting out: zero the insets for an element and its descendants ------- */
