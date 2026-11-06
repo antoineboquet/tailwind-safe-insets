@@ -102,7 +102,7 @@ In a horizontal carousel with scroll snapping, `scroll-px-safe-4` on the scrolle
 - Heights: `h-dvh-safe`, `min-h-dvh-safe` and `max-h-dvh-safe` subtract the top and bottom insets from `100dvh`.
 - Widths: `w-dvw-safe` and `max-w-dvw-safe` subtract the left and right insets from `100dvw`. There is no `min-w-dvw-safe`.
 - Theme tokens come from `--spacing-*` only. Core `max-w-lg` reads `--container-lg` (32rem) and `max-h-sm` reads `--max-height-sm`: those are sizes, while the value here is a gap subtracted twice. So `max-w-dvw-safe-lg` generates nothing unless you define `--spacing-lg`.
-- `100dvw`, like `100vw`, includes a classic desktop scrollbar, so `w-dvw-safe-4` is slightly too wide on a page that scrolls. When that matters, size the element with insets instead: `fixed inset-x-safe-4 mx-auto w-fit`.
+- `100dvw`, like `100vw`, includes a classic desktop scrollbar, so `w-dvw-safe-4` is slightly too wide on a page that scrolls. When that matters, size the element with insets instead: `fixed inset-x-safe-4 mx-auto max-w-lg` fills the space between the insets, up to `max-w-lg`.
 
 ### Centering in the safe area
 
