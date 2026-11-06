@@ -50,7 +50,8 @@
     "index.css",
     "merge.mjs",
     "merge.d.mts",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "llms.txt"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs && tsc -p test/types"
