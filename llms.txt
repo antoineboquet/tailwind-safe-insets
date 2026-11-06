@@ -64,7 +64,7 @@ Opt-out classes: `safe-none`, `safe-x-none`, `safe-y-none`, `safe-t-none`, `safe
 | Page gutters that clear a landscape notch | `px-safe-4` |
 | Bottom padding of the last content block | `pb-safe-6` |
 | Modal centered between the insets | `fixed top-safe-1/2 left-safe-1/2 -translate-x-1/2 -translate-y-1/2 w-dvw-safe-4 max-w-lg max-h-dvh-safe-4 overflow-y-auto` |
-| Modal centered without a transform | `fixed inset-safe-or-4 m-auto w-fit h-fit max-w-lg max-h-dvh-safe-or-4 overflow-y-auto` |
+| Modal centered without a transform | `fixed inset-safe-or-4 m-auto h-fit max-w-lg max-h-dvh-safe-or-4 overflow-y-auto` |
 | Panel between status bar and home indicator | `fixed top-safe inset-x-0 h-dvh-safe overflow-y-auto` |
 | Child bleeding to the screen edge through `px-safe-4` | `-mx-safe-4` |
 | Anchor targets below a sticky header of `h-16 pt-safe` | `scroll-pt-safe-16` on `<html>` |
@@ -82,12 +82,12 @@ Rule of thumb:
   - `pt-[max(env(safe-area-inset-top),1rem)]` → `pt-safe-or-4`;
   - `max-h-[calc(100dvh-2rem)]` → `max-h-dvh-safe-4`;
   - `top-1/2` in a modal → `top-safe-1/2`.
-- **Fractions vs arbitrary values:** `top-safe-[50%]` means top inset + 50%, which is not the middle of the safe area. Use `top-safe-1/2`.
+- **Fractions vs arbitrary values:** `top-safe-[50%]` means top inset + 50%, which is not the middle of the safe area. Use `top-safe-1/2`. Write fractions bare: `top-safe-[1/2]` produces invalid CSS.
 - **Modals:**
   - Pair `top-safe-1/2` with the additive cap `max-h-dvh-safe-{n}`. With `max-h-dvh-safe-or-{n}`, the gaps are unequal when only one inset is smaller than the gap.
-  - For the `-or-` behaviour, use the transform-free modal pattern above.
+  - For the `-or-` behaviour, use the transform-free modal pattern above. Do not add `w-fit` to it: a wide `<pre>` or table would push the modal off the screen.
   - `h-fit` needs the `max-h-dvh-safe-or-*` cap, or tall content overflows the screen.
-- **Containing block:** fractions and viewport sizes assume a `fixed` element whose containing block is the viewport. An ancestor with `transform`, `filter`, `backdrop-filter`, `perspective`, `contain: paint` or `will-change: transform` breaks that.
+- **Containing block:** fractions and viewport sizes assume a `fixed` element whose containing block is the viewport. An ancestor with `transform`, `translate`, `scale` or `rotate` (Tailwind's `translate-*`, `scale-*` and `rotate-*`, even at `translate-x-0` or `scale-100`), `filter`, `backdrop-filter`, `perspective`, `contain: layout` or `contain: paint`, or `will-change` naming one of them breaks that.
 - **Do not stack** a core class and its safe counterpart on the same element (`pt-4 pt-safe-4`) unless tailwind-merge is extended. Pick one.
 - **Physical and logical sides:**
   - Insets are physical. `pl-safe`, `pr-safe`, `left-safe` and `px-safe` keep each inset on its own side in RTL.
@@ -136,6 +136,6 @@ export const twMerge = extendTailwindMerge(withSafeInsets);
 ## Troubleshooting
 
 - **The insets are always 0.** `viewport-fit=cover` is missing, or the page is not on a device with insets. On desktop, 0 is expected.
-- **An element is off-center or too tall** with `top-safe-1/2` or `max-h-dvh-safe-*`. Check for a transformed or filtered ancestor (see "Containing block" under Rules).
+- **An element is off-center or too tall** with `top-safe-1/2` or `max-h-dvh-safe-*`. Check for an ancestor with a transform, a `translate-*`, `scale-*` or `rotate-*` class, or a filter (see "Containing block" under Rules).
 - **There is extra space inside a card or a drawer.** The component uses `pb-safe-*` but does not touch the screen edge: add `safe-none` to its root.
 - **An override does not apply.** tailwind-merge is not extended, so both classes stay and the stylesheet order decides.

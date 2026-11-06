@@ -202,7 +202,7 @@ These utilities subtract the insets from the dynamic viewport. They take the thr
 - **Heights:** `h-dvh-safe`, `min-h-dvh-safe` and `max-h-dvh-safe` subtract the top and bottom insets.
 - **Widths:** `w-dvw-safe` and `max-w-dvw-safe` subtract the left and right insets. There is no `min-w-dvw-safe`.
 - **Theme tokens:** these utilities read `--spacing-*` tokens only. Core `max-w-lg` reads `--container-lg` (32rem), but here the value is a gap subtracted on each side, not a size, so `max-w-dvw-safe-lg` generates nothing unless you define `--spacing-lg`.
-- **Scrollbars:** `100dvw`, like `100vw`, includes a classic desktop scrollbar, so `w-dvw-safe-4` is slightly too wide on a page that scrolls. When that matters, size with insets instead: `fixed inset-x-safe-4 mx-auto w-fit`.
+- **Scrollbars:** `100dvw`, like `100vw`, includes a classic desktop scrollbar, so `w-dvw-safe-4` is slightly too wide on a page that scrolls. When that matters, size with insets instead: `fixed inset-x-safe-4 mx-auto max-w-lg` fills the space between the insets, up to `max-w-lg`.
 
 ### Fractions
 
@@ -216,19 +216,22 @@ These utilities subtract the insets from the dynamic viewport. They take the thr
 Here `<top>`, `<bottom>`, `<left>` and `<right>` stand for the insets.
 
 - **Meaning:** a fraction does not mean *inset plus value*, since inset + 50% is never the middle. `top-safe-[50%]` keeps that meaning.
+- **No brackets:** write fractions bare. A fraction in brackets (`top-safe-[1/2]`) is read as an arbitrary value and produces invalid CSS.
 - **Scope:** only the four physical sides take fractions, and not in the `-or-` form. Centering pairs with a translate, which is physical, so there is no `inset-s-safe-1/2`.
 - **Containing block:** `100%` is the size of the containing block, while the insets are those of the screen.
   - The result is right for a `fixed` element, or an `absolute` one whose containing block covers the screen.
-  - A `fixed` element is positioned against an ancestor instead when that ancestor has `transform`, `filter`, `backdrop-filter`, `perspective`, `contain: paint` or `will-change: transform`.
+  - A `fixed` element is positioned against an ancestor instead when that ancestor has `transform`, `translate`, `scale` or `rotate` (Tailwind's `translate-*`, `scale-*` and `rotate-*` set these, even at `translate-x-0` or `scale-100`), `filter`, `backdrop-filter`, `perspective`, `contain: layout` or `contain: paint`, or `will-change` naming one of them.
 - **Height cap:** pair a fraction with the additive cap (`max-h-dvh-safe-4`), whose box has the same middle. With the `-or-` cap, the two gaps come out unequal when only one inset is smaller than the gap.
+- **Nuxt UI:** in Nuxt UI 4, the [modal recipe](#modal) replaces the classes of the default modal (`top-1/2 … max-h-[calc(100dvh-2rem)]`). The `scrollable` modal is placed by a grid overlay instead, so these classes do not apply to it.
 
-For the `-or-` behaviour, center without a transform, the way browsers center a modal `<dialog>`. With insets on both sides, a `fit-content` size and `auto` margins, the two gaps are equal by construction:
+For the `-or-` behaviour, center without a transform, the way browsers center a modal `<dialog>`. With insets on all four sides, `auto` margins and a capped size, the gaps are equal by construction:
 
 ```html
-<div class="fixed inset-safe-or-4 m-auto w-fit h-fit max-w-lg max-h-dvh-safe-or-4 overflow-y-auto">…</div>
+<div class="fixed inset-safe-or-4 m-auto h-fit max-w-lg max-h-dvh-safe-or-4 overflow-y-auto">…</div>
 ```
 
-- Keep `max-h-dvh-safe-or-4`: `h-fit` follows the content, so without a cap a tall modal overflows the screen instead of scrolling.
+- The width fills the space between the left and right insets, up to `max-w-lg`. Do not add `w-fit`: a wide `<pre>` or table would then push the modal off the screen.
+- `h-fit` makes the height follow the content. Keep `max-h-dvh-safe-or-4`, or a tall modal overflows the screen instead of scrolling.
 - `height: fit-content` needs Firefox 94 or later.
 
 ### Accepted values
@@ -369,7 +372,7 @@ The tests compile the utilities with Tailwind and check the generated CSS:
 - that every tailwind-merge decision matches the one for the core counterparts;
 - that every safe class in the README and `llms.txt` examples exists, that the classes `llms.txt` lists as non-existent do not, and that the summary above matches the headings.
 
-They also type-check the helper. CI runs them against Tailwind CSS 4.0.0 and the latest release. The tailwind-merge helper is tested against tailwind-merge 3.7 and was checked against 3.0.0.
+They also type-check the helper. CI runs them against Tailwind CSS 4.0.0 and the latest release. The tailwind-merge helper is tested in CI against the locked tailwind-merge release and against 3.0.0.
 
 Contributors and coding agents working on this repository: see [AGENTS.md](AGENTS.md).
 

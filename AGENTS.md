@@ -53,7 +53,7 @@ npm install --no-save tailwind-merge@3.0.0 && npm test          # lowest support
 npm ci                                                          # back to the locked versions
 ```
 
-CI runs the tests on Tailwind 4.0.0 and the latest release, then smoke-tests the packed tarball.
+CI runs the tests on Tailwind 4.0.0 and the latest release, and on the latest Tailwind with tailwind-merge 3.0.0, then smoke-tests the packed tarball.
 
 When adding or renaming a utility:
 
