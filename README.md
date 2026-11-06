@@ -8,6 +8,34 @@ Tailwind CSS v4 utilities that keep your content clear of the notch, the status 
 <button class="fixed right-safe-4 bottom-safe-or-4">+</button>
 ```
 
+## Summary
+
+1. [Quick start](#quick-start)
+2. [One rule: plus, or at least](#one-rule-plus-or-at-least)
+3. [Recipes](#recipes)
+   1. [Sticky header](#sticky-header)
+   2. [Bottom tab bar](#bottom-tab-bar)
+   3. [Floating button](#floating-button)
+   4. [Page gutters](#page-gutters)
+   5. [Modal](#modal)
+   6. [Full-height panel](#full-height-panel)
+   7. [Edge-to-edge image](#edge-to-edge-image)
+   8. [Anchor links under a sticky header](#anchor-links-under-a-sticky-header)
+   9. [A component away from the edge](#a-component-away-from-the-edge)
+4. [Reference](#reference)
+   1. [Utilities](#utilities)
+   2. [Viewport sizes](#viewport-sizes)
+   3. [Fractions](#fractions)
+   4. [Accepted values](#accepted-values)
+   5. [Right-to-left layouts](#right-to-left-layouts)
+   6. [Opting out and custom insets](#opting-out-and-custom-insets)
+   7. [tailwind-merge](#tailwind-merge)
+5. [For AI coding assistants](#for-ai-coding-assistants)
+6. [Comparison with other packages](#comparison-with-other-packages)
+7. [Tailwind core](#tailwind-core)
+8. [Development](#development)
+9. [License](#license)
+
 ## Quick start
 
 1. Install the package:
@@ -48,31 +76,41 @@ The value is anything Tailwind accepts: `pb-safe-4`, `pb-safe-1.5`, `pb-safe-sm`
 
 ## Recipes
 
-**Sticky header.** The background extends under the status bar, and the content starts below it:
+### Sticky header
+
+The background extends under the status bar, and the content starts below it:
 
 ```html
 <header class="sticky top-0 pt-safe-4 px-safe-4">…</header>
 ```
 
-**Bottom tab bar.** On an iPhone, the home indicator inset is enough. Elsewhere, keep at least 0.5rem:
+### Bottom tab bar
+
+On an iPhone, the home indicator inset is enough. Elsewhere, keep at least 0.5rem:
 
 ```html
 <nav class="fixed inset-x-0 bottom-0 px-safe pb-safe-or-2">…</nav>
 ```
 
-**Floating button.** At least 1rem from the bottom, and 1rem from the right edge plus the notch in landscape:
+### Floating button
+
+At least 1rem from the bottom, and 1rem from the right edge plus the notch in landscape:
 
 ```html
 <button class="fixed right-safe-4 bottom-safe-or-4">+</button>
 ```
 
-**Page gutters.** In landscape, the notch side gets the extra room:
+### Page gutters
+
+In landscape, the notch side gets the extra room:
 
 ```html
 <main class="px-safe-4 pb-safe-6">…</main>
 ```
 
-**Modal.** `top-1/2` centers in the viewport, so a tall modal reaches the status bar. `top-safe-1/2` centers between the insets, and `max-h-dvh-safe-4` keeps 1rem clear of each one:
+### Modal
+
+`top-1/2` centers in the viewport, so a tall modal reaches the status bar. `top-safe-1/2` centers between the insets, and `max-h-dvh-safe-4` keeps 1rem clear of each one:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/figures/modal.dark.svg">
@@ -84,13 +122,17 @@ The value is anything Tailwind accepts: `pb-safe-4`, `pb-safe-1.5`, `pb-safe-sm`
             w-dvw-safe-4 max-w-lg max-h-dvh-safe-4 sm:max-h-dvh-safe-8 overflow-y-auto">…</div>
 ```
 
-**Full-height panel** between the status bar and the home indicator:
+### Full-height panel
+
+A panel between the status bar and the home indicator:
 
 ```html
 <aside class="fixed top-safe inset-x-0 h-dvh-safe overflow-y-auto">…</aside>
 ```
 
-**Edge-to-edge image** inside a padded article. The negative margin cancels the padding:
+### Edge-to-edge image
+
+Inside a padded article, the negative margin cancels the padding:
 
 ```html
 <article class="px-safe-4">
@@ -98,7 +140,9 @@ The value is anything Tailwind accepts: `pb-safe-4`, `pb-safe-1.5`, `pb-safe-sm`
 </article>
 ```
 
-**Anchor links under a sticky header.** The header's height includes the top inset, so the scroll offset must too:
+### Anchor links under a sticky header
+
+The header's height includes the top inset, so the scroll offset must too:
 
 ```html
 <html class="scroll-pt-safe-16">
@@ -109,7 +153,9 @@ The value is anything Tailwind accepts: `pb-safe-4`, `pb-safe-1.5`, `pb-safe-sm`
 </html>
 ```
 
-**A component away from the edge.** A footer with `pb-safe-4` is right at the bottom of a page, but adds 34px for nothing inside a card or a drawer. `safe-none` zeroes the insets for an element and everything inside it:
+### A component away from the edge
+
+A footer with `pb-safe-4` is right at the bottom of a page, but adds 34px for nothing inside a card or a drawer. `safe-none` zeroes the insets for an element and everything inside it:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/figures/opt-out.dark.svg">
@@ -321,7 +367,7 @@ The tests compile the utilities with Tailwind and check the generated CSS:
 - that every utility writes the same property, reads the same theme token and sorts in the same order as its Tailwind counterpart;
 - the viewport sizes and fractions against the core utilities they stand in for (`max-h-*`, `top-1/2`…), and the viewport sizes against the size tokens they must not read;
 - that every tailwind-merge decision matches the one for the core counterparts;
-- that every safe class in the README and `llms.txt` examples exists, and that the classes `llms.txt` lists as non-existent do not.
+- that every safe class in the README and `llms.txt` examples exists, that the classes `llms.txt` lists as non-existent do not, and that the summary above matches the headings.
 
 They also type-check the helper. CI runs them against Tailwind CSS 4.0.0 and the latest release. The tailwind-merge helper is tested against tailwind-merge 3.7 and was checked against 3.0.0.
 

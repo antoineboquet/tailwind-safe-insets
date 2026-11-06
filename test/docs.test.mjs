@@ -47,3 +47,19 @@ test("the classes llms.txt lists as non-existent do not exist", async () => {
   assert.deepEqual(wrong.filter((c) => r.has(c)), []);
   assert.deepEqual(replacements.filter((c) => !r.has(c)), []);
 });
+
+test("the README summary lists every section, in order, with GitHub's anchors", () => {
+  const readme = read("README.md").replace(/```[\s\S]*?```/g, ""); // headings inside code blocks do not count
+  // GitHub's anchor: lowercase, punctuation removed, spaces turned into hyphens.
+  const slug = (title) => title.toLowerCase().replace(/[^\p{L}\p{N} _-]/gu, "").replace(/ /g, "-");
+  const headings = [...readme.matchAll(/^(##|###) (.+)$/gm)]
+    .map(([, level, title]) => ({ level: level.length, title }))
+    .filter((h) => h.title !== "Summary");
+  const summary = readme.slice(readme.indexOf("## Summary"), readme.indexOf("\n## ", readme.indexOf("## Summary") + 1));
+  const entries = [...summary.matchAll(/^( *)\d+\. \[(.+)\]\(#(.+)\)$/gm)].map(([, indent, title, anchor]) => ({
+    level: indent.length ? 3 : 2,
+    title,
+    anchor,
+  }));
+  assert.deepEqual(entries, headings.map((h) => ({ ...h, anchor: slug(h.title) })));
+});

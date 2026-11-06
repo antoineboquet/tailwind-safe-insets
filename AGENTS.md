@@ -11,6 +11,7 @@ Notes for contributors and coding agents. To *use* the library in another projec
 | `test/helpers.mjs` | Shared test data: families, sizes, fractions, the `documented` class list, the `build()` compiler. |
 | `test/utilities.test.mjs` | Generated CSS: values, insets read, properties, sort order. |
 | `test/merge.test.mjs` | tailwind-merge decisions, compared with the core counterparts. |
+| `test/docs.test.mjs` | Documentation: the classes in the README and `llms.txt` examples exist, and the README summary matches its headings. |
 | `test/types/` | Type check of the published helper. |
 | `docs/figures/build.mjs` | Generates the README figures (`*.light.svg`, `*.dark.svg`). |
 | `README.md` | Human documentation. |
@@ -59,7 +60,7 @@ When adding or renaming a utility:
 1. Add it to `index.css`, following the neighbouring blocks.
 2. Add it to the shared data in `test/helpers.mjs` (`families`, `sizes`, `fractionCandidates` or `documented`), so that the generic tests cover it. Add value tests for anything new.
 3. Put it in the right class group in `merge.mjs`, and add a case in `test/merge.test.mjs`.
-4. Document it in `README.md` and `llms.txt`, including the "Classes that do not exist" table in `llms.txt` if a plausible name is not supported.
+4. Document it in `README.md` and `llms.txt`, including the "Classes that do not exist" table in `llms.txt` if a plausible name is not supported. A new README section also needs an entry in the README summary.
 5. Add a CHANGELOG entry.
 
 When a change affects a figure, edit `docs/figures/build.mjs`, run `node docs/figures/build.mjs` and commit the regenerated SVGs. Do not edit the SVGs by hand. The figures compute their geometry from real values (390 × 844, 59px and 34px insets), so keep them true to the CSS.

@@ -10,7 +10,7 @@
 - tailwind-merge: the new size classes join the `h`, `min-h`, `max-h`, `w` and `max-w` groups, so `twMerge("max-h-[calc(100dvh-2rem)] max-h-dvh-safe-4")` gives `max-h-dvh-safe-4`.
 - The viewport sizes read theme tokens from `--spacing-*` only, not from `--height-*`, `--max-height-*`, `--container-*` and the like, since the value is a gap and not a size.
 - `llms.txt`, a compact reference for coding assistants, shipped in the package: class grammar, which form to pick, and classes that do not exist.
-- A rewritten README: a quick start, the one rule, recipes with figures, then the reference.
+- A rewritten README: a summary, a quick start, the one rule, recipes with figures, then the reference.
 - `AGENTS.md`, notes for contributors and coding agents working on the repository.
 
 ### Changed
