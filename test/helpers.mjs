@@ -116,7 +116,7 @@ export const documented = [
   ...Object.keys(toggles),
 ];
 
-export async function build(candidates, theme = "") {
+export async function build(candidates, theme = "", { raw = false } = {}) {
   const css = [
     '@import "tailwindcss/theme" theme(reference);',
     '@import "tailwindcss/utilities";',
@@ -124,8 +124,10 @@ export async function build(candidates, theme = "") {
     theme && `@theme { ${theme} }`,
   ].join("\n");
   const compiler = await compile(css, { base: root, onDependency() {} });
-  // Tailwind >= 4.0.17 adds a fallback to var(--spacing); normalise it away.
-  return compiler.build(candidates).replaceAll("var(--spacing, 0.25rem)", "var(--spacing)");
+  const out = compiler.build(candidates);
+  // Tailwind >= 4.0.17 adds a fallback to var(--spacing); normalise it away,
+  // unless the test checks the fallback itself.
+  return raw ? out : out.replaceAll("var(--spacing, 0.25rem)", "var(--spacing)");
 }
 
 function parseDecls(text) {

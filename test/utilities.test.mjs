@@ -14,6 +14,7 @@ import {
   rtlRules,
   rules,
   sizeCandidates,
+  sizes,
   sizeNeighbours,
   toggles,
   winning,
@@ -240,6 +241,61 @@ test("viewport sizes read --spacing-* tokens and no size namespace", async () =>
       assert.equal(value.split(`var(${token})`).length - 1, 2, `${c}-${t} reads ${token} on each side`);
     }
   }
+});
+
+test("every viewport size gives the exact value in every form", async () => {
+  const props = {
+    "h-dvh": ["height", "dvh"],
+    "min-h-dvh": ["min-height", "dvh"],
+    "max-h-dvh": ["max-height", "dvh"],
+    "w-dvw": ["width", "dvw"],
+    "max-w-dvw": ["max-width", "dvw"],
+  };
+  const values = {
+    4: "calc(var(--spacing) * 4)",
+    "1.5": "calc(var(--spacing) * 1.5)",
+    "[20px]": "20px",
+    sm: "var(--spacing-sm)",
+  };
+  const expected = new Map();
+  for (const { shape, axis: [a, b] } of sizes) {
+    const [prop, unit] = props[shape];
+    expected.set(`${shape}-safe`, [[prop, `calc(100${unit} - ${ins(a)} - ${ins(b)})`]]);
+    for (const [v, css] of Object.entries(values)) {
+      expected.set(`${shape}-safe-${v}`, [[prop, `calc(100${unit} - (${ins(a)} + ${css}) - (${ins(b)} + ${css}))`]]);
+      expected.set(`${shape}-safe-or-${v}`, [[prop, `calc(100${unit} - max(${ins(a)}, ${css}) - max(${ins(b)}, ${css}))`]]);
+    }
+  }
+  assert.equal(expected.size, sizes.length * 9);
+  const r = rules(await build([...expected.keys()], "--spacing-sm: 0.75rem;"));
+  const wrong = [...expected]
+    .filter(([name, decls]) => JSON.stringify(r.get(name)) !== JSON.stringify(decls))
+    .map(([name]) => `${name}: ${JSON.stringify(r.get(name))}`);
+  assert.deepEqual(wrong, []);
+});
+
+test("the spacing number keeps its 0.25rem fallback in the generated CSS", async () => {
+  // build() normalises the fallback away for the other tests; check it here on the raw output.
+  const shapes = [
+    ...Object.values(families).flatMap((f) => [...f.ours, ...(f.negative ? f.ours.map((s) => `-${s}`) : [])]),
+    ...sizes.map((s) => s.shape),
+  ];
+  const cands = shapes.flatMap((s) => [`${s}-safe-3`, `${s}-safe-or-3`]);
+  const r = rules(await build(cands, "--*: initial;", { raw: true }));
+  for (const c of cands) {
+    assert.ok(r.has(c), c);
+    assert.ok(r.get(c).some(([, v]) => v.includes("var(--spacing, 0.25rem) * 3")), `${c}: ${JSON.stringify(r.get(c))}`);
+  }
+});
+
+test("only top, right, bottom and left take a fraction, and never in the -or- form", async () => {
+  const shapes = [
+    ...Object.values(families).flatMap((f) => [...f.ours, ...(f.negative ? f.ours.map((s) => `-${s}`) : [])]),
+    ...sizes.map((s) => s.shape),
+  ];
+  const cands = shapes.flatMap((s) => [`${s}-safe-1/2`, `${s}-safe-or-1/2`]);
+  const r = rules(await build(cands));
+  assert.deepEqual(cands.filter((c) => r.has(c)).sort(), ["bottom-safe-1/2", "left-safe-1/2", "right-safe-1/2", "top-safe-1/2"]);
 });
 
 test("viewport sizes fall back to 0.25rem without --spacing", async () => {

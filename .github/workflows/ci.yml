@@ -9,13 +9,18 @@ permissions:
 
 jobs:
   test:
-    name: Tailwind CSS ${{ matrix.tailwind }}
+    name: Tailwind CSS ${{ matrix.tailwind }}${{ matrix.merge != 'locked' && format(', tailwind-merge {0}', matrix.merge) || '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         # Lowest version allowed by peerDependencies, and the current release.
         tailwind: ["4.0.0", "latest"]
+        # tailwind-merge from package-lock.json, plus the lowest version the helper supports.
+        merge: ["locked"]
+        include:
+          - tailwind: "latest"
+            merge: "3.0.0"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -30,7 +35,12 @@ jobs:
         run: npm ci
 
       - name: Use Tailwind CSS ${{ matrix.tailwind }}
-        run: npm install --no-save tailwindcss@${{ matrix.tailwind }} @tailwindcss/node@${{ matrix.tailwind }}
+        run: |
+          # One install, so that a second one does not reset the first to the lockfile.
+          packages="tailwindcss@${{ matrix.tailwind }} @tailwindcss/node@${{ matrix.tailwind }}"
+          if [ "${{ matrix.merge }}" != "locked" ]; then packages="$packages tailwind-merge@${{ matrix.merge }}"; fi
+          npm install --no-save $packages
+          for p in tailwindcss tailwind-merge; do echo "$p $(node -p "require('./node_modules/$p/package.json').version")"; done
 
       - name: Run tests
         run: npm test

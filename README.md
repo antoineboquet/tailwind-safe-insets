@@ -16,7 +16,7 @@ Safe-area-aware padding, margin, positioning, scroll offsets and viewport sizes 
 - **Behaves like core utilities**: each one writes the same CSS property as its Tailwind counterpart, so theme overrides such as `--spacing-4` apply and overrides work the same way: `p-safe-4 px-0` like `p-4 px-0`, `px-safe-4 ps-2` like `px-4 ps-2`.
 - **tailwind-merge support**: an optional helper teaches `twMerge` / `cn()` which classes conflict.
 - **RTL-aware**: insets are physical (a left notch stays on the left), so `px-safe` keeps each inset on its side in RTL, and the logical `ps-safe` / `pe-safe` / `inset-s-safe` / `inset-e-safe` read the inset on the start or end side.
-- Tested in CI against Tailwind CSS 4.0.0 and the latest release. The tailwind-merge helper is tested in CI against tailwind-merge 3.7 and was checked against 3.0.0 for this release.
+- Tested in CI against Tailwind CSS 4.0.0 and the latest release. The tailwind-merge helper is tested in CI against the locked tailwind-merge release and against 3.0.0.
 
 ## Installation
 
@@ -121,18 +121,22 @@ In a horizontal carousel with scroll snapping, `scroll-px-safe-4` on the scrolle
             w-dvw-safe-4 max-w-lg max-h-dvh-safe-4 sm:max-h-dvh-safe-8 overflow-y-auto">…</div>
 ```
 
-- A fraction does not mean *inset plus value*, since inset + 50% is never the middle. `top-safe-[50%]` keeps that meaning.
+- A fraction does not mean *inset plus value*, since inset + 50% is never the middle. `top-safe-[50%]` keeps that meaning, and a fraction in brackets (`top-safe-[1/2]`) produces invalid CSS: write fractions without brackets.
 - Only the four physical sides take fractions, and not in the `-or-` form. Centering pairs with a translate, which is physical, so there is no `inset-s-safe-1/2`.
-- `100%` is the size of the containing block, while the insets are those of the screen. The result is right for a `fixed` element, or an `absolute` one whose containing block covers the screen. A `fixed` element inside an ancestor with `transform`, `filter`, `backdrop-filter`, `perspective`, `contain: paint` or `will-change: transform` is positioned against that ancestor instead.
+- `100%` is the size of the containing block, while the insets are those of the screen. The result is right for a `fixed` element, or an `absolute` one whose containing block covers the screen. A `fixed` element is positioned against an ancestor instead when that ancestor has `transform`, `translate`, `scale` or `rotate` (Tailwind's `translate-*`, `scale-*` and `rotate-*` set these, even at `translate-x-0` or `scale-100`), `filter`, `backdrop-filter`, `perspective`, `contain: layout` or `contain: paint`, or `will-change` naming one of them.
 - Pair a fraction with the additive cap (`max-h-dvh-safe-4`), whose box has the same middle, so both gaps are exact. With the `-or-` cap, the gaps come out unequal when only one inset is smaller than the gap (8px at the top and 29px at the bottom for an iPhone in landscape, instead of 16px and 21px).
 
-For the `-or-` behaviour, center without a transform, the way browsers center a modal `<dialog>`: with both insets set, a `fit-content` size and `auto` margins, the gaps are equal by construction.
+In Nuxt UI 4, this replaces the classes of the default modal (`top-1/2 … max-h-[calc(100dvh-2rem)]`). The `scrollable` modal is placed by a grid overlay instead, so these classes do not apply to it.
+
+For the `-or-` behaviour, center without a transform, the way browsers center a modal `<dialog>`: with insets on all four sides, `auto` margins and a capped size, the gaps are equal by construction.
 
 ```html
-<div class="fixed inset-safe-or-4 m-auto w-fit h-fit max-w-lg max-h-dvh-safe-or-4 overflow-y-auto">…</div>
+<div class="fixed inset-safe-or-4 m-auto h-fit max-w-lg max-h-dvh-safe-or-4 overflow-y-auto">…</div>
 ```
 
-Keep the `max-h-dvh-safe-or-4`: `h-fit` follows the content, so without a cap a tall modal overflows the screen instead of scrolling. `height: fit-content` needs Firefox 94 or later.
+- The width fills the space between the left and right insets, up to `max-w-lg`. Do not add `w-fit`: a wide `<pre>` or table would then push the modal off the screen.
+- `h-fit` makes the height follow the content. Keep `max-h-dvh-safe-or-4`, or a tall modal overflows the screen instead of scrolling.
+- `height: fit-content` needs Firefox 94 or later.
 
 ### Accepted values
 

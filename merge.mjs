@@ -5,11 +5,11 @@
  * that covers the same sides (pt-safe-4 → "pt", inset-x-safe → "inset-x", …),
  * so tailwind-merge's existing conflict rules apply unchanged:
  *
- *   twMerge("pt-4 pt-safe-4")          → "pt-safe-4"
- *   twMerge("px-0 p-safe-4")           → "p-safe-4"
- *   twMerge("p-safe-4 px-0")           → "p-safe-4 px-0"   (px-0 only overrides two sides)
- *   twMerge("top-1/2 top-safe-1/2")    → "top-safe-1/2"
- *   twMerge("max-h-[90dvh] max-h-dvh-safe-4") → "max-h-dvh-safe-4"
+ *   twMerge("pt-4 pt-safe-4")                  → "pt-safe-4"
+ *   twMerge("px-0 p-safe-4")                   → "p-safe-4"
+ *   twMerge("p-safe-4 px-0")                   → "p-safe-4 px-0"   (px-0 only overrides two sides)
+ *   twMerge("top-1/2 top-safe-1/2")            → "top-safe-1/2"
+ *   twMerge("max-h-[90dvh] max-h-dvh-safe-4")  → "max-h-dvh-safe-4"
  *
  * Usage:
  *   import { extendTailwindMerge } from "tailwind-merge";
